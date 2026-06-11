@@ -190,7 +190,7 @@
 <script>
 // ══════════════════════════════════════════════════
 //  ضعي رابط Apps Script هنا بعد النشر
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfTLAwbH8-OG4fSGBsbWOysUCN70fdVpOnX71UHvkN_Lj_CSPrtQtZG7i8XXF1S8XXpw/exec';
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 // ══════════════════════════════════════════════════
 
 let sessionData = null, camStream = null, scanning = false, animFrame = null;
@@ -353,7 +353,9 @@ function showBanner(type, icon, title, sub) {
 function clearBanner() { document.getElementById('banner').classList.remove('show'); }
 
 async function api(payload) {
-  const r = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify(payload)});
+  // Apps Script يقبل GET من أي domain — نرسل الـ payload كـ query param
+  const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
+  const r   = await fetch(url, { method:'GET', redirect:'follow' });
   return r.json();
 }
 
