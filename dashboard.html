@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم — نظام الحضور</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+:root { --teal:#02807A; --teal2:#309C99; --gold:#AA926D; --bg:#F0FAF9; --white:#fff; --text:#1A1A1A; --muted:#6B7280; --border:#D1FAE5; --radius:12px; --success:#065F46; --success-bg:#ECFDF5; --warning:#92400E; --warning-bg:#FFFBEB; }
+body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+header { background:var(--teal); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:50; box-shadow:0 2px 12px rgba(2,128,122,.3); }
+.logo { width:36px; height:36px; border-radius:9px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:18px; }
+.ht h1 { font-size:15px; font-weight:700; }
+.ht p  { font-size:11px; opacity:.8; }
+.spacer { flex:1; }
+.live { display:flex; align-items:center; gap:6px; font-size:12px; background:rgba(255,255,255,.15); padding:5px 11px; border-radius:20px; }
+.dot { width:7px; height:7px; border-radius:50%; background:#4ADE80; animation:pulse 1.5s infinite; }
+.nav-links { display:flex; gap:8px; margin-right:10px; }
+.nav-btn { background:rgba(255,255,255,.15); border:none; color:#fff; padding:6px 12px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+.nav-btn:hover { background:rgba(255,255,255,.25); }
+main { padding:16px; max-width:1000px; margin:0 auto; }
+.sel-row { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+select { padding:10px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:14px; background:var(--white); color:var(--text); font-family:inherit; flex:1; min-width:160px; }
+.btn-refresh { background:var(--teal); color:#fff; border:none; border-radius:9px; padding:10px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:16px; }
+.kpi { background:var(--white); border-radius:var(--radius); border:1px solid #E0F2F1; padding:14px 16px; text-align:center; box-shadow:0 1px 4px rgba(2,128,122,.06); }
+.kpi-v { font-size:28px; font-weight:700; color:var(--teal); }
+.kpi-v.warn { color:var(--warning); }
+.kpi-v.sm   { font-size:14px; font-weight:600; }
+.kpi-l { font-size:12px; color:var(--muted); margin-top:4px; }
+.content-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:640px) { .content-grid { grid-template-columns:1fr; } }
+.card { background:var(--white); border-radius:var(--radius); border:1px solid #E0F2F1; padding:16px; box-shadow:0 1px 4px rgba(2,128,122,.06); }
+.card-title { font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin-bottom:14px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:right; padding:8px 10px; color:var(--muted); font-weight:600; border-bottom:2px solid var(--border); font-size:12px; }
+td { padding:9px 10px; border-bottom:1px solid var(--border); }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#F9FAFB; }
+.badge { font-size:11px; padding:3px 9px; border-radius:99px; font-weight:600; }
+.badge-present  { background:var(--success-bg); color:var(--success); }
+.badge-late     { background:var(--warning-bg); color:var(--warning); }
+.badge-override { background:#EDE9FE; color:#5B21B6; }
+.chart-wrap { height:200px; position:relative; }
+.insight-list { list-style:none; }
+.insight-list li { padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; display:flex; justify-content:space-between; }
+.insight-list li:last-child { border-bottom:none; }
+.iv { font-weight:600; color:var(--teal); }
+.empty { text-align:center; color:var(--muted); font-size:13px; padding:28px; }
+.exp-btns { display:flex; gap:8px; }
+.btn-exp { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); color:#fff; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚖</div>
+  <div class="ht"><h1>لوحة التحكم</h1><p id="org-name">النيابة العامة</p></div>
+  <div class="spacer"></div>
+  <div class="live"><div class="dot"></div>مباشر</div>
+  <div class="exp-btns" style="margin:0 10px;">
+    <button class="btn-exp" onclick="exportCSV()">📊 Excel</button>
+    <button class="btn-exp" onclick="window.print()">📄 PDF</button>
+  </div>
+  <div class="nav-links">
+    <a class="nav-btn" href="admin.html">⚙️ الإدارة</a>
+    <a class="nav-btn" href="scanner.html">📷 المسح</a>
+    <button class="nav-btn" onclick="logout()">🚪 خروج</button>
+  </div>
+</header>
+
+<main>
+  <div class="sel-row">
+    <select id="ws-sel" onchange="loadQRList()"><option value="">— اختر الورشة —</option></select>
+    <select id="qr-sel"><option value="">— اختر اليوم —</option></select>
+    <button class="btn-refresh" onclick="loadDashboard()">🔄 تحديث</button>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-v" id="k-total">—</div><div class="kpi-l">إجمالي الحضور</div></div>
+    <div class="kpi"><div class="kpi-v" id="k-ontime">—</div><div class="kpi-l">في الوقت</div></div>
+    <div class="kpi"><div class="kpi-v warn" id="k-late">—</div><div class="kpi-l">متأخرون</div></div>
+    <div class="kpi"><div class="kpi-v" id="k-avg" style="font-size:20px;">—</div><div class="kpi-l">متوسط الوصول</div></div>
+    <div class="kpi"><div class="kpi-v sm" id="k-last">—</div><div class="kpi-l">آخر مسجَّل</div></div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-title">📋 سجل الحضور</div>
+      <div id="tbl-wrap"><div class="empty">اختر ورشة ويوماً</div></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">📊 توزيع الوصول (كل ١٥ دقيقة)</div>
+        <div class="chart-wrap"><canvas id="dist-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">💡 إحصائيات</div>
+        <ul class="insight-list">
+          <li><span>أول الحاضرين</span><span class="iv" id="i-first">—</span></li>
+          <li><span>ساعة الذروة</span><span class="iv" id="i-peak">—</span></li>
+          <li><span>نسبة الحضور في الوقت</span><span class="iv" id="i-pct">—</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script>
+if (sessionStorage.getItem('auth') !== CONFIG.ADMIN_PASSWORD) window.location.href = 'index.html';
+document.getElementById('org-name').textContent = CONFIG.ORG_NAME;
+
+let distChart = null, autoTimer = null, tableData = [];
+
+window.addEventListener('load', loadWorkshops);
+
+async function loadWorkshops() {
+  const res = await api({ action:'getWorkshops' });
+  const sel = document.getElementById('ws-sel');
+  sel.innerHTML = '<option value="">— اختر الورشة —</option>';
+  (res.workshops||[]).forEach(w => {
+    const o = document.createElement('option');
+    o.value = w.workshop_id; o.textContent = w.name; sel.appendChild(o);
+  });
+}
+
+async function loadQRList() {
+  const wsId = document.getElementById('ws-sel').value;
+  const sel  = document.getElementById('qr-sel');
+  sel.innerHTML = '<option value="">— اختر اليوم —</option>';
+  if (!wsId) return;
+  const res = await api({ action:'getQRList', workshop_id:wsId });
+  (res.qr_list||[]).forEach(q => {
+    const o = document.createElement('option');
+    o.value = q.qr_id; o.textContent = `اليوم ${q.day_number} — ${q.event_date}`; sel.appendChild(o);
+  });
+}
+
+async function loadDashboard() {
+  const wsId = document.getElementById('ws-sel').value;
+  const qrId = document.getElementById('qr-sel').value;
+  if (!wsId || !qrId) return;
+  const res = await api({ action:'getDashboard', workshop_id:wsId, qr_id:qrId });
+  if (!res.ok) return;
+  const k = res.kpis;
+  setText('k-total', k.total); setText('k-ontime', k.onTime);
+  setText('k-late', k.lateCount); setText('k-avg', k.avgTime); setText('k-last', k.lastPerson);
+  tableData = res.table || [];
+  renderTable(tableData);
+  renderChart(res.distribution);
+  if (res.earliest) setText('i-first', `${res.earliest.name} (${res.earliest.time})`);
+  const peak = res.distribution?.length ? res.distribution.reduce((a,b)=>a.count>b.count?a:b) : null;
+  setText('i-peak', peak ? `${peak.time} (${peak.count})` : '—');
+  const pct = k.total > 0 ? Math.round((k.onTime/k.total)*100) : 0;
+  setText('i-pct', k.total > 0 ? pct+'%' : '—');
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(loadDashboard, 30000);
+}
+
+function renderTable(rows) {
+  const w = document.getElementById('tbl-wrap');
+  if (!rows?.length) { w.innerHTML = '<div class="empty">لا يوجد حضور بعد</div>'; return; }
+  w.innerHTML = `<table><thead><tr><th>#</th><th>الاسم</th><th>وقت الوصول</th><th>الحالة</th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="font-weight:600">${r.name}</td>
+      <td style="font-variant-numeric:tabular-nums">${r.arrival_time}</td>
+      <td><span class="badge ${r.is_late?'badge-late':r.status==='تجاوز'?'badge-override':'badge-present'}">${r.is_late?'متأخر':r.status==='تجاوز'?'تجاوز':'حاضر'}</span></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function renderChart(dist) {
+  if (distChart) { distChart.destroy(); distChart=null; }
+  if (!dist?.length) return;
+  distChart = new Chart(document.getElementById('dist-chart'), {
+    type:'bar',
+    data:{ labels:dist.map(d=>d.time), datasets:[{ label:'حضور', data:dist.map(d=>d.count), backgroundColor:'#02807A', borderRadius:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}}}, x:{ticks:{font:{size:10},maxRotation:45}} } }
+  });
+}
+
+function exportCSV() {
+  if (!tableData.length) return;
+  const bom  = '\uFEFF';
+  const rows = [['#','الاسم','وقت الوصول','التاريخ','الحالة','متأخر'],
+    ...tableData.map((r,i)=>[i+1,r.name,r.arrival_time,r.date,r.status,r.is_late?'نعم':'لا'])];
+  const csv = bom + rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download = 'attendance.csv'; a.click();
+}
+
+function setText(id,v) { document.getElementById(id).textContent = v ?? '—'; }
+function logout() { sessionStorage.clear(); window.location.href='index.html'; }
+async function api(payload) {
+  const url = CONFIG.APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
+  const r   = await fetch(url, { method:'GET', redirect:'follow' });
+  return r.json();
+}
+</script>
+</body>
+</html>

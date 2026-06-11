@@ -2,367 +2,135 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>تسجيل الحضور — النيابة العامة</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>نظام الحضور — تسجيل الدخول</title>
 <style>
-  * { box-sizing:border-box; margin:0; padding:0; }
-  :root {
-    --teal:#02807A; --teal2:#309C99; --gold:#AA926D;
-    --bg:#F0FAF9; --white:#FFFFFF; --text:#1A1A1A;
-    --muted:#6B7280; --border:#D1FAE5;
-    --success:#065F46; --success-bg:#ECFDF5;
-    --danger:#991B1B;  --danger-bg:#FEF2F2;
-    --warning:#92400E; --warning-bg:#FFFBEB;
-    --radius:14px;
-  }
-  body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-
-  header {
-    background:var(--teal); color:#fff;
-    padding:12px 18px; display:flex; align-items:center; gap:12px;
-    box-shadow:0 2px 12px rgba(2,128,122,.3);
-    position:sticky; top:0; z-index:50;
-  }
-  .logo { width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-  .htext h1 { font-size:16px; font-weight:700; }
-  .htext p  { font-size:11px; opacity:.8; margin-top:1px; }
-  .spacer { flex:1; }
-  #clock { font-size:13px; font-weight:600; background:rgba(255,255,255,.15); padding:5px 11px; border-radius:20px; }
-
-  main { padding:16px; max-width:480px; margin:0 auto; }
-
-  .banner { border-radius:12px; padding:12px 16px; display:none; align-items:center; gap:12px; margin-bottom:14px; animation:fadeIn .25s; }
-  .banner.show    { display:flex; }
-  .banner.valid   { background:var(--success-bg); color:var(--success); border:1.5px solid #6EE7B7; }
-  .banner.invalid { background:var(--danger-bg);  color:var(--danger);  border:1.5px solid #FCA5A5; }
-  .banner.warning { background:var(--warning-bg); color:var(--warning); border:1.5px solid #FCD34D; }
-  .b-icon  { font-size:24px; flex-shrink:0; }
-  .b-title { font-size:14px; font-weight:700; }
-  .b-sub   { font-size:12px; margin-top:2px; opacity:.85; }
-
-  .card { background:var(--white); border-radius:var(--radius); border:1px solid #E0F2F1; padding:18px; margin-bottom:14px; box-shadow:0 1px 4px rgba(2,128,122,.06); }
-  .card-title { font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin-bottom:14px; }
-
-  /* Viewfinder */
-  .vf-wrap { position:relative; width:100%; aspect-ratio:1; max-height:320px; background:#0a0a0a; border-radius:12px; overflow:hidden; margin-bottom:12px; }
-  #cam-video { width:100%; height:100%; object-fit:cover; display:block; }
-  #scan-canvas { display:none; }
-  .vf-shade { position:absolute; background:rgba(0,0,0,.48); pointer-events:none; }
-  .vf-shade.top    { top:0;    left:0;    right:0;   height:19%; }
-  .vf-shade.bottom { bottom:0; left:0;    right:0;   height:19%; }
-  .vf-shade.left   { top:19%; bottom:19%; left:0;    width:19%; }
-  .vf-shade.right  { top:19%; bottom:19%; right:0;   width:19%; }
-  .vf-frame { position:absolute; top:19%; left:19%; right:19%; bottom:19%; pointer-events:none; }
-  .corner { position:absolute; width:26px; height:26px; border-color:#4ADE80; border-style:solid; }
-  .corner.tl { top:0;    right:0;  border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
-  .corner.tr { top:0;    left:0;   border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
-  .corner.bl { bottom:0; right:0;  border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
-  .corner.br { bottom:0; left:0;   border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
-  .scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#4ADE80,transparent); animation:scanMove 2s ease-in-out infinite; }
-  .vf-hint { position:absolute; bottom:10px; left:0; right:0; text-align:center; color:rgba(255,255,255,.75); font-size:12px; pointer-events:none; }
-  .cam-state { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0a0a0a; color:rgba(255,255,255,.75); gap:12px; text-align:center; padding:20px; }
-  .cam-state.hide { display:none; }
-  .cam-state .si { font-size:48px; }
-  .cam-state p { font-size:13px; line-height:1.5; }
-  .btn-cam { background:var(--teal); color:#fff; border:none; border-radius:10px; padding:12px 26px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; }
-  .btn-cam:active { transform:scale(.97); }
-
-  input[type="text"] { width:100%; padding:13px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-family:inherit; background:#FAFFFE; color:var(--text); text-align:right; transition:border-color .2s; }
-  input[type="text"]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.12); }
-
-  .btn { width:100%; padding:14px; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .2s; }
-  .btn-primary   { background:var(--teal); color:#fff; margin-top:10px; }
-  .btn-secondary { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); margin-top:8px; }
-  .btn-primary:active, .btn-secondary:active { transform:scale(.98); }
-
-  .divider-or { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted); margin:14px 0 10px; }
-  .divider-or::before, .divider-or::after { content:''; flex:1; height:1px; background:var(--border); }
-
-  .session-pill { background:linear-gradient(135deg,var(--teal),var(--teal2)); color:#fff; border-radius:12px; padding:14px 18px; margin-bottom:14px; font-size:13px; box-shadow:0 4px 12px rgba(2,128,122,.25); }
-  .session-pill strong { display:block; font-size:16px; margin-bottom:4px; }
-
-  #reg-form { display:none; }
-  #reg-form.show { display:block; }
-
-  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
-  .overlay.show { display:flex; }
-  .modal { background:var(--white); border-radius:var(--radius); width:100%; max-width:360px; overflow:hidden; animation:slideUp .3s; }
-  .modal-head { background:var(--warning-bg); border-bottom:1.5px solid #FCD34D; padding:16px 18px; display:flex; align-items:center; gap:10px; }
-  .modal-head h3 { font-size:15px; font-weight:700; color:var(--warning); }
-  .modal-body { padding:18px; }
-  .modal-body p { font-size:14px; line-height:1.65; margin-bottom:10px; }
-  .name-hl  { font-weight:700; font-size:15px; color:var(--teal); }
-  .time-box { background:var(--bg); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--muted); margin-bottom:14px; }
-  textarea  { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; resize:none; min-height:64px; color:var(--text); }
-  .modal-foot { display:flex; gap:10px; padding:0 18px 18px; }
-  .modal-foot .btn { margin:0; flex:1; padding:12px; font-size:14px; }
-  .btn-override { background:var(--teal); color:#fff; }
-  .btn-cancel   { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); }
-
-  .flash { position:fixed; inset:0; background:linear-gradient(135deg,var(--teal),var(--teal2)); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; z-index:200; opacity:0; pointer-events:none; transition:opacity .3s; text-align:center; padding:30px; }
-  .flash.show { opacity:1; pointer-events:all; }
-  .flash-check { font-size:80px; margin-bottom:16px; }
-  .flash h2 { font-size:24px; font-weight:700; margin-bottom:8px; }
-  .flash p  { font-size:15px; opacity:.85; }
-  .late-tag { margin-top:16px; background:rgba(255,255,255,.2); border-radius:20px; padding:6px 20px; font-size:14px; }
-
-  @keyframes scanMove { 0%{top:2%} 50%{top:94%} 100%{top:2%} }
-  @keyframes fadeIn   { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
-  @keyframes slideUp  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+* { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --teal:#02807A; --teal2:#309C99; --gold:#AA926D;
+  --bg:#F0FAF9; --white:#fff; --text:#1A1A1A;
+  --muted:#6B7280; --border:#D1FAE5; --radius:14px;
+}
+body {
+  font-family:'Segoe UI',Tahoma,sans-serif;
+  background:linear-gradient(135deg,#014D49 0%,#02807A 50%,#309C99 100%);
+  min-height:100vh; min-height:100dvh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:20px;
+}
+.login-card {
+  background:var(--white); border-radius:20px;
+  width:100%; max-width:380px;
+  box-shadow:0 24px 60px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+.login-header {
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  padding:32px 28px 24px;
+  text-align:center; color:#fff;
+}
+.logo-wrap { width:72px; height:72px; border-radius:18px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 14px; }
+.login-header h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
+.login-header p  { font-size:13px; opacity:.85; }
+.login-body { padding:28px; }
+.field { margin-bottom:16px; }
+label { display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+input[type="password"] {
+  width:100%; padding:13px 14px;
+  border:1.5px solid var(--border); border-radius:10px;
+  font-size:16px; font-family:inherit; text-align:center;
+  background:#FAFFFE; color:var(--text); letter-spacing:.2em;
+  transition:border-color .2s;
+}
+input[type="password"]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.12); }
+.btn-login {
+  width:100%; padding:14px; border:none; border-radius:10px;
+  background:var(--teal); color:#fff; font-size:16px; font-weight:700;
+  cursor:pointer; font-family:inherit; transition:all .2s;
+}
+.btn-login:hover  { background:#016b66; }
+.btn-login:active { transform:scale(.98); }
+.error-msg { background:#FEF2F2; border:1px solid #FCA5A5; border-radius:8px; padding:9px 14px; font-size:13px; color:#991B1B; margin-top:12px; display:none; text-align:center; }
+.error-msg.show { display:block; animation:shake .3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
+.role-btn {
+  border:1.5px solid var(--border); border-radius:10px;
+  padding:14px 10px; background:var(--bg); cursor:pointer;
+  text-align:center; transition:all .2s; font-family:inherit;
+}
+.role-btn:hover { border-color:var(--teal); background:#ECFDF5; }
+.role-btn.selected { border-color:var(--teal); background:#ECFDF5; box-shadow:0 0 0 3px rgba(2,128,122,.1); }
+.role-icon { font-size:24px; margin-bottom:6px; }
+.role-name { font-size:13px; font-weight:600; color:var(--text); }
+.role-desc { font-size:11px; color:var(--muted); margin-top:2px; }
 </style>
 </head>
 <body>
-
-<header>
-  <div class="logo">⚖</div>
-  <div class="htext"><h1>تسجيل الحضور</h1><p>النيابة العامة — نظام الفعاليات</p></div>
-  <div class="spacer"></div>
-  <div id="clock">--:--</div>
-</header>
-
-<main>
-  <div id="banner" class="banner">
-    <div class="b-icon" id="b-icon"></div>
-    <div><div class="b-title" id="b-title"></div><div class="b-sub" id="b-sub"></div></div>
+<div class="login-card">
+  <div class="login-header">
+    <div class="logo-wrap">⚖</div>
+    <h1 id="sys-name">نظام تسجيل الحضور</h1>
+    <p id="org-name">النيابة العامة</p>
   </div>
+  <div class="login-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;text-align:center;">اختاري دورك ثم أدخلي كلمة المرور</p>
 
-  <div class="card" id="scanner-card">
-    <div class="card-title">📷 ماسح رمز QR</div>
-    <div class="vf-wrap">
-      <video id="cam-video" autoplay playsinline muted></video>
-      <canvas id="scan-canvas"></canvas>
-      <div class="vf-shade top"></div>
-      <div class="vf-shade bottom"></div>
-      <div class="vf-shade left"></div>
-      <div class="vf-shade right"></div>
-      <div class="vf-frame">
-        <div class="corner tl"></div><div class="corner tr"></div>
-        <div class="corner bl"></div><div class="corner br"></div>
-        <div class="scan-line"></div>
-      </div>
-      <div class="vf-hint" id="vf-hint">وجّه الكاميرا نحو رمز QR</div>
-      <div class="cam-state" id="cam-state">
-        <div class="si">📷</div>
-        <p id="state-msg">اضغط لتشغيل الكاميرا</p>
-        <button class="btn-cam" onclick="startCamera()">تشغيل الكاميرا</button>
-      </div>
+    <!-- اختيار الدور -->
+    <div class="roles">
+      <button class="role-btn selected" onclick="selectRole('scanner')" id="role-scanner">
+        <div class="role-icon">📷</div>
+        <div class="role-name">منظم</div>
+        <div class="role-desc">مسح الحضور</div>
+      </button>
+      <button class="role-btn" onclick="selectRole('admin')" id="role-admin">
+        <div class="role-icon">⚙️</div>
+        <div class="role-name">مسؤول</div>
+        <div class="role-desc">إدارة النظام</div>
+      </button>
     </div>
-    <div class="divider-or">أو أدخل يدوياً</div>
-    <input type="text" id="manual-token" placeholder="الصق رابط QR أو token هنا">
-    <button class="btn btn-primary" onclick="manualValidate()">🔍 تحقق</button>
-  </div>
 
-  <div id="reg-form">
-    <div class="session-pill" id="session-pill"></div>
-    <div class="card">
-      <div class="card-title">👤 بيانات المدعو</div>
-      <input type="text" id="attendee-name" placeholder="اكتب الاسم كاملاً" autocomplete="off">
-      <button class="btn btn-primary" onclick="submitAttendance()">✅ تسجيل الحضور</button>
-      <button class="btn btn-secondary" onclick="resetScanner()">↩ مسح رمز آخر</button>
+    <div class="field" style="margin-top:18px;">
+      <label>كلمة المرور</label>
+      <input type="password" id="password" placeholder="••••••" onkeydown="if(event.key==='Enter')login()">
     </div>
-  </div>
-</main>
-
-<div class="overlay" id="dup-overlay">
-  <div class="modal">
-    <div class="modal-head"><span style="font-size:22px;">⚠️</span><h3>تنبيه — تكرار تسجيل</h3></div>
-    <div class="modal-body">
-      <p>المدعو <span class="name-hl" id="dup-name"></span> مسجَّل مسبقاً:</p>
-      <div class="time-box" id="dup-time"></div>
-      <label style="font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">سبب التسجيل الإضافي (اختياري)</label>
-      <textarea id="override-reason" placeholder="مثال: تأكيد يدوي..."></textarea>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-cancel"   onclick="closeModal()">تجاهل</button>
-      <button class="btn btn-override" onclick="confirmOverride()">تسجيل رغم ذلك</button>
-    </div>
+    <button class="btn-login" onclick="login()">دخول</button>
+    <div class="error-msg" id="error-msg">كلمة المرور غير صحيحة</div>
   </div>
 </div>
 
-<div class="flash" id="flash">
-  <div class="flash-check">✅</div>
-  <h2 id="flash-name"></h2>
-  <p id="flash-time"></p>
-  <div class="late-tag" id="flash-late" style="display:none;">⏰ متأخر</div>
-</div>
-
+<script src="config.js"></script>
 <script>
-// ══════════════════════════════════════════════════
-//  ضعي رابط Apps Script هنا بعد النشر
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx275uAz70xZ12Zhy7u6Zdn4lvROYi9QQQRVyHWyQ1cQIv-3h3hbF64LBTlFm6I6IAzoA/exec';
-// ══════════════════════════════════════════════════
+let selectedRole = 'scanner';
 
-let sessionData = null, camStream = null, scanning = false, animFrame = null;
+// تطبيق الإعدادات
+document.getElementById('sys-name').textContent = CONFIG.SYSTEM_NAME;
+document.getElementById('org-name').textContent = CONFIG.ORG_NAME;
 
-setInterval(() => {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}, 1000);
-
-async function startCamera() {
-  document.getElementById('state-msg').textContent = 'جارٍ تشغيل الكاميرا...';
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }
-    });
-    const v = document.getElementById('cam-video');
-    v.srcObject = camStream;
-    await v.play();
-    document.getElementById('cam-state').classList.add('hide');
-    scanning = true;
-    requestAnimationFrame(scanFrame);
-  } catch(err) {
-    const msgs = {
-      NotAllowedError : 'رُفض إذن الكاميرا — اضغطي "سماح" عند الطلب',
-      NotFoundError   : 'لم يُعثر على كاميرا في هذا الجهاز',
-    };
-    document.getElementById('state-msg').textContent = msgs[err.name] || 'تعذّر الوصول للكاميرا';
-  }
+function selectRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('role-' + role).classList.add('selected');
 }
 
-function scanFrame() {
-  if (!scanning) return;
-  const v = document.getElementById('cam-video');
-  const c = document.getElementById('scan-canvas');
-  if (v.readyState === v.HAVE_ENOUGH_DATA) {
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(v, 0, 0);
-    const img  = ctx.getImageData(0, 0, c.width, c.height);
-    const code = jsQR(img.data, img.width, img.height, {inversionAttempts:'dontInvert'});
-    if (code?.data) {
-      scanning = false;
-      document.getElementById('vf-hint').textContent = '✅ تم قراءة الرمز!';
-      setTimeout(() => handleScan(code.data), 300);
-      return;
-    }
-  }
-  animFrame = requestAnimationFrame(scanFrame);
-}
-
-function handleScan(text) {
-  stopCamera();
-  let token = text;
-  try { token = new URL(text).searchParams.get('token') || text; } catch(_) {}
-  validateToken(token);
-}
-
-function stopCamera() {
-  scanning = false;
-  if (animFrame) cancelAnimationFrame(animFrame);
-  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
-}
-
-function manualValidate() {
-  const raw = document.getElementById('manual-token').value.trim();
-  if (!raw) return;
-  stopCamera();
-  let token = raw;
-  try { token = new URL(raw).searchParams.get('token') || raw; } catch(_) {}
-  validateToken(token);
-}
-
-async function validateToken(token) {
-  showBanner('warning','⏳','جارٍ التحقق...','');
-  try {
-    const res = await api({ action:'validateQR', token });
-    if (res.ok) {
-      sessionData = res;
-      showBanner('valid','✅','رمز صالح',`${res.workshop_name} — اليوم ${res.day_number}`);
-      document.getElementById('session-pill').innerHTML =
-        `<strong>${res.workshop_name}</strong><span>📅 اليوم ${res.day_number} | ${res.event_date}</span>`;
-      document.getElementById('scanner-card').style.display = 'none';
-      document.getElementById('reg-form').classList.add('show');
-      setTimeout(() => document.getElementById('attendee-name').focus(), 250);
+function login() {
+  const pass = document.getElementById('password').value;
+  if (pass === CONFIG.ADMIN_PASSWORD) {
+    sessionStorage.setItem('auth', CONFIG.ADMIN_PASSWORD);
+    sessionStorage.setItem('role', selectedRole);
+    if (selectedRole === 'admin') {
+      window.location.href = 'admin.html';
     } else {
-      showBanner('invalid','❌','رمز غير صالح', res.reason || 'تعذّر التحقق');
-      setTimeout(() => { clearBanner(); restartCamera(); }, 3000);
+      window.location.href = 'scanner.html';
     }
-  } catch(e) {
-    showBanner('invalid','❌','خطأ في الاتصال','تحققي من الإنترنت وحاولي مجدداً');
-    setTimeout(() => { clearBanner(); restartCamera(); }, 3000);
-  }
-}
-
-function restartCamera() {
-  const s = document.getElementById('cam-state');
-  s.classList.remove('hide');
-  document.getElementById('state-msg').textContent = 'اضغط لتشغيل الكاميرا';
-  document.getElementById('vf-hint').textContent   = 'وجّه الكاميرا نحو رمز QR';
-  startCamera();
-}
-
-async function submitAttendance(isOverride=false, reason='') {
-  const name = document.getElementById('attendee-name').value.trim();
-  if (!name || !sessionData) return;
-  showBanner('warning','⏳','جارٍ التسجيل...','');
-  const res = await api({
-    action:'registerAttendee',
-    qr_id:sessionData.qr_id, workshop_id:sessionData.workshop_id,
-    day_number:sessionData.day_number, event_date:sessionData.event_date,
-    attendee_name:name, override:isOverride, override_reason:reason, approved_by:'المنظم',
-  });
-  if (res.ok) {
-    showFlash(name, res.arrival_time, res.is_late, res.status==='تجاوز');
-    document.getElementById('attendee-name').value = '';
-    clearBanner();
-  } else if (res.duplicate) {
-    clearBanner(); showDupModal(name, res.registered_at);
   } else {
-    showBanner('invalid','❌','خطأ', res.error||'تعذّر التسجيل');
+    const err = document.getElementById('error-msg');
+    err.classList.add('show');
+    setTimeout(() => err.classList.remove('show'), 3000);
+    document.getElementById('password').value = '';
+    document.getElementById('password').focus();
   }
 }
-
-function showDupModal(name, time) {
-  document.getElementById('dup-name').textContent  = name;
-  document.getElementById('dup-time').textContent  = `وقت التسجيل الأصلي: ${time}`;
-  document.getElementById('override-reason').value = '';
-  document.getElementById('dup-overlay').classList.add('show');
-}
-function closeModal()       { document.getElementById('dup-overlay').classList.remove('show'); }
-function confirmOverride()  { closeModal(); submitAttendance(true, document.getElementById('override-reason').value.trim()); }
-
-function showFlash(name, time, isLate, isOverride) {
-  document.getElementById('flash-name').textContent = name;
-  document.getElementById('flash-time').textContent = `${isOverride?'تسجيل إضافي':'حضور مؤكد'} — الساعة ${time}`;
-  document.getElementById('flash-late').style.display = isLate ? 'block':'none';
-  const f = document.getElementById('flash');
-  f.classList.add('show');
-  setTimeout(() => f.classList.remove('show'), 2400);
-}
-
-function resetScanner() {
-  sessionData = null; stopCamera();
-  document.getElementById('reg-form').classList.remove('show');
-  document.getElementById('scanner-card').style.display = '';
-  document.getElementById('manual-token').value = '';
-  clearBanner();
-  document.getElementById('cam-state').classList.remove('hide');
-  document.getElementById('state-msg').textContent = 'اضغط لتشغيل الكاميرا';
-  startCamera();
-}
-
-function showBanner(type, icon, title, sub) {
-  const b = document.getElementById('banner');
-  b.className = 'banner show '+(type==='valid'?'valid':type==='warning'?'warning':'invalid');
-  document.getElementById('b-icon').textContent  = icon;
-  document.getElementById('b-title').textContent = title;
-  document.getElementById('b-sub').textContent   = sub;
-}
-function clearBanner() { document.getElementById('banner').classList.remove('show'); }
-
-async function api(payload) {
-  // Apps Script يقبل GET من أي domain — نرسل الـ payload كـ query param
-  const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
-  const r   = await fetch(url, { method:'GET', redirect:'follow' });
-  return r.json();
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && document.getElementById('reg-form').classList.contains('show'))
-    submitAttendance();
-});
 </script>
 </body>
 </html>

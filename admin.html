@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الإدارة — نظام الحضور</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --teal:#02807A; --teal2:#309C99; --gold:#AA926D;
+  --bg:#F0FAF9; --white:#fff; --text:#1A1A1A;
+  --muted:#6B7280; --border:#D1FAE5; --radius:12px;
+  --success:#065F46; --success-bg:#ECFDF5;
+  --danger:#991B1B; --danger-bg:#FEF2F2;
+  --warning:#92400E; --warning-bg:#FFFBEB;
+}
+body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+header { background:var(--teal); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:12px; box-shadow:0 2px 12px rgba(2,128,122,.3); position:sticky; top:0; z-index:50; }
+.logo { width:36px; height:36px; border-radius:9px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.ht h1 { font-size:15px; font-weight:700; }
+.ht p  { font-size:11px; opacity:.8; }
+.spacer { flex:1; }
+.nav-links { display:flex; gap:8px; }
+.nav-btn { background:rgba(255,255,255,.15); border:none; color:#fff; padding:6px 14px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+.nav-btn:hover { background:rgba(255,255,255,.25); }
+main { padding:16px; max-width:960px; margin:0 auto; }
+.page-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:640px) { .page-grid { grid-template-columns:1fr; } }
+.card { background:var(--white); border-radius:var(--radius); border:1px solid #E0F2F1; padding:18px; margin-bottom:14px; box-shadow:0 1px 4px rgba(2,128,122,.06); }
+.card-title { font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin-bottom:14px; }
+.form-group { margin-bottom:12px; }
+label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:5px; }
+input, select { width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:14px; font-family:inherit; background:#FAFFFE; color:var(--text); transition:border-color .2s; }
+input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
+.btn { width:100%; padding:12px; border:none; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; transition:all .2s; }
+.btn-primary   { background:var(--teal); color:#fff; margin-top:8px; }
+.btn-secondary { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); margin-top:6px; }
+.btn-sm { padding:5px 12px; font-size:12px; border-radius:6px; border:none; cursor:pointer; font-family:inherit; font-weight:600; }
+.btn-activate   { background:var(--success-bg); color:var(--success); }
+.btn-deactivate { background:var(--danger-bg); color:var(--danger); }
+.btn-view-qr    { background:#EDE9FE; color:#5B21B6; }
+.ws-item { border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:border-color .2s; }
+.ws-item:hover { border-color:var(--teal2); }
+.ws-item.selected { border-color:var(--teal); background:#ECFDF5; }
+.ws-icon { width:36px; height:36px; border-radius:8px; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.ws-name { font-weight:600; font-size:14px; }
+.ws-meta { font-size:12px; color:var(--muted); }
+.qr-row { border:1px solid var(--border); border-radius:10px; padding:11px 13px; margin-bottom:8px; display:flex; align-items:center; gap:9px; }
+.qr-day { width:34px; height:34px; border-radius:8px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--teal); flex-shrink:0; }
+.qr-info { flex:1; }
+.qr-title { font-weight:600; font-size:13px; }
+.qr-date  { font-size:12px; color:var(--muted); }
+.badge { font-size:11px; padding:3px 9px; border-radius:99px; font-weight:600; }
+.badge-active   { background:var(--success-bg); color:var(--success); }
+.badge-inactive { background:#F3F4F6; color:var(--muted); }
+.success-toast { background:var(--success-bg); border:1px solid #6EE7B7; border-radius:8px; padding:9px 14px; font-size:13px; color:var(--success); margin-top:10px; display:none; }
+.success-toast.show { display:block; animation:fadeIn .3s; }
+.empty { text-align:center; color:var(--muted); font-size:13px; padding:24px; }
+/* Modal QR */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+.overlay.show { display:flex; }
+.modal { background:var(--white); border-radius:var(--radius); max-width:340px; width:100%; overflow:hidden; animation:slideUp .3s; }
+.modal-head { background:var(--teal); color:#fff; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; }
+.modal-head h3 { font-size:15px; font-weight:700; }
+.modal-close { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1; }
+.modal-body { padding:20px; text-align:center; }
+.modal-body p { font-size:13px; color:var(--muted); margin-bottom:14px; }
+#qr-display { display:flex; justify-content:center; margin-bottom:14px; }
+.modal-url { font-size:10px; color:var(--muted); word-break:break-all; background:var(--bg); border-radius:6px; padding:7px 10px; margin-bottom:14px; text-align:right; }
+.modal-footer { display:flex; gap:8px; }
+.modal-footer .btn { margin:0; flex:1; padding:11px; }
+.btn-print { background:var(--teal); color:#fff; }
+.btn-close-m { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); }
+@keyframes fadeIn  { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚖</div>
+  <div class="ht"><h1>إدارة النظام</h1><p id="org-name">النيابة العامة</p></div>
+  <div class="spacer"></div>
+  <div class="nav-links">
+    <a class="nav-btn" href="dashboard.html">📊 لوحة التحكم</a>
+    <a class="nav-btn" href="scanner.html">📷 المسح</a>
+    <button class="nav-btn" onclick="logout()">🚪 خروج</button>
+  </div>
+</header>
+
+<main>
+<div class="page-grid">
+
+  <!-- يسار: قائمة الورش + QR -->
+  <div>
+    <div class="card">
+      <div class="card-title">📁 الورش المتاحة</div>
+      <div id="ws-list"><div class="empty">جارٍ التحميل...</div></div>
+    </div>
+    <div class="card" id="qr-section" style="display:none;">
+      <div class="card-title" id="qr-title">رموز QR</div>
+      <div id="qr-list"></div>
+      <button class="btn btn-primary" onclick="showQRForm()" style="margin-top:4px;">+ إضافة يوم جديد</button>
+    </div>
+  </div>
+
+  <!-- يمين: إنشاء ورشة + إضافة يوم -->
+  <div>
+    <div class="card">
+      <div class="card-title">➕ إنشاء ورشة جديدة</div>
+      <div class="form-group"><label>اسم الورشة</label><input type="text" id="ws-name" placeholder="مثال: ورشة الأداء المؤسسي"></div>
+      <div class="form-group"><label>تاريخ البداية</label><input type="date" id="ws-start"></div>
+      <div class="form-group"><label>تاريخ النهاية</label><input type="date" id="ws-end"></div>
+      <div class="form-group"><label>الموقع</label><input type="text" id="ws-location" placeholder="قاعة الاجتماعات الرئيسية"></div>
+      <button class="btn btn-primary" onclick="createWorkshop()">إنشاء الورشة</button>
+      <div class="success-toast" id="ws-toast">✅ تم إنشاء الورشة بنجاح</div>
+    </div>
+
+    <div class="card" id="qr-form" style="display:none;">
+      <div class="card-title">📎 إضافة يوم + رمز QR</div>
+      <div class="form-group"><label>رقم اليوم</label><input type="number" id="qr-day" min="1" value="1"></div>
+      <div class="form-group"><label>تاريخ اليوم</label><input type="date" id="qr-date"></div>
+      <div class="form-group"><label>بدء القبول</label><input type="datetime-local" id="qr-from"></div>
+      <div class="form-group"><label>انتهاء القبول</label><input type="datetime-local" id="qr-until"></div>
+      <div class="form-group"><label>اعتبار متأخر بعد</label><input type="datetime-local" id="qr-late"></div>
+      <button class="btn btn-primary" onclick="createQR()">توليد رمز QR</button>
+      <div class="success-toast" id="qr-toast">✅ تم توليد الرمز بنجاح</div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<!-- Modal QR -->
+<div class="overlay" id="qr-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">رمز QR</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-sub"></p>
+      <div id="qr-display"></div>
+      <div class="modal-url" id="modal-url"></div>
+      <div class="modal-footer">
+        <button class="btn btn-close-m" onclick="closeModal()">إغلاق</button>
+        <button class="btn btn-print"   onclick="printQR()">🖨 طباعة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+// حماية الصفحة
+if (sessionStorage.getItem('auth') !== CONFIG.ADMIN_PASSWORD) window.location.href = 'index.html';
+document.getElementById('org-name').textContent = CONFIG.ORG_NAME;
+
+let selectedWS  = null;
+let currentQRUrl = '';
+
+window.addEventListener('load', loadWorkshops);
+
+async function loadWorkshops() {
+  const res = await api({ action:'getWorkshops' });
+  const el  = document.getElementById('ws-list');
+  if (!res.workshops?.length) { el.innerHTML = '<div class="empty">لا توجد ورش — أنشئي ورشة من اليمين</div>'; return; }
+  el.innerHTML = res.workshops.map(w => `
+    <div class="ws-item" id="ws-${w.workshop_id}" onclick="selectWS('${w.workshop_id}','${w.name}')">
+      <div class="ws-icon">📁</div>
+      <div><div class="ws-name">${w.name}</div><div class="ws-meta">${w.start_date} ← ${w.end_date}</div></div>
+    </div>`).join('');
+}
+
+function selectWS(id, name) {
+  selectedWS = id;
+  document.querySelectorAll('.ws-item').forEach(e => e.classList.remove('selected'));
+  document.getElementById('ws-' + id)?.classList.add('selected');
+  document.getElementById('qr-section').style.display = '';
+  document.getElementById('qr-title').textContent = 'رموز QR — ' + name;
+  loadQRList(id);
+}
+
+async function loadQRList(wsId) {
+  const res = await api({ action:'getQRList', workshop_id: wsId || selectedWS });
+  const el  = document.getElementById('qr-list');
+  if (!res.qr_list?.length) { el.innerHTML = '<div class="empty">لا توجد رموز بعد</div>'; return; }
+  el.innerHTML = res.qr_list.map(q => `
+    <div class="qr-row">
+      <div class="qr-day">${q.day_number}</div>
+      <div class="qr-info">
+        <div class="qr-title">اليوم ${q.day_number}</div>
+        <div class="qr-date">${q.event_date}</div>
+      </div>
+      <span class="badge ${q.is_active ? 'badge-active':'badge-inactive'}">${q.is_active ? 'مفعّل':'معلّق'}</span>
+      <button class="btn-sm ${q.is_active ? 'btn-deactivate':'btn-activate'}"
+        onclick="toggleQR('${q.qr_id}',${!q.is_active})">${q.is_active ? 'إيقاف':'تفعيل'}</button>
+      <button class="btn-sm btn-view-qr" onclick="viewQR('${q.url}','${q.qr_id}','${q.event_date}')">عرض QR</button>
+    </div>`).join('');
+}
+
+async function createWorkshop() {
+  const name = document.getElementById('ws-name').value.trim();
+  if (!name) { alert('أدخلي اسم الورشة'); return; }
+  const res = await api({ action:'createWorkshop', name,
+    start_date: document.getElementById('ws-start').value,
+    end_date  : document.getElementById('ws-end').value,
+    location  : document.getElementById('ws-location').value });
+  if (res.ok) {
+    toast('ws-toast');
+    loadWorkshops();
+    ['ws-name','ws-start','ws-end','ws-location'].forEach(id => document.getElementById(id).value = '');
+  } else alert('خطأ: ' + res.error);
+}
+
+function showQRForm() {
+  document.getElementById('qr-form').style.display = '';
+  document.getElementById('qr-form').scrollIntoView({ behavior:'smooth' });
+}
+
+async function createQR() {
+  if (!selectedWS) { alert('اختاري ورشة أولاً'); return; }
+  const res = await api({ action:'createQR', workshop_id:selectedWS,
+    day_number : document.getElementById('qr-day').value,
+    event_date : document.getElementById('qr-date').value,
+    valid_from : document.getElementById('qr-from').value,
+    valid_until: document.getElementById('qr-until').value,
+    late_after : document.getElementById('qr-late').value });
+  if (res.ok) {
+    toast('qr-toast');
+    loadQRList(selectedWS);
+    viewQR(res.url, res.qr_id, document.getElementById('qr-date').value);
+  } else alert('خطأ: ' + res.error);
+}
+
+async function toggleQR(qr_id, is_active) {
+  await api({ action:'toggleQR', qr_id, is_active });
+  loadQRList(selectedWS);
+}
+
+function viewQR(url, id, date) {
+  currentQRUrl = url;
+  document.getElementById('modal-title').textContent = id;
+  document.getElementById('modal-sub').textContent   = date;
+  document.getElementById('modal-url').textContent   = url;
+  const d = document.getElementById('qr-display');
+  d.innerHTML = '';
+  new QRCode(d, { text:url, width:200, height:200, correctLevel:QRCode.CorrectLevel.H });
+  document.getElementById('qr-modal').classList.add('show');
+}
+function closeModal() { document.getElementById('qr-modal').classList.remove('show'); }
+
+function printQR() {
+  const canvas = document.querySelector('#qr-display canvas');
+  const img    = canvas ? canvas.toDataURL() : '';
+  const w = window.open('');
+  w.document.write(`<html><head><title>QR</title>
+    <style>body{text-align:center;font-family:Tahoma;padding:40px;direction:rtl}
+    h2{color:#02807A}img{border:2px solid #eee;border-radius:12px;padding:10px;margin:16px 0}
+    p{font-size:12px;color:#666;word-break:break-all}</style></head><body>
+    <h2>${CONFIG.ORG_NAME} — تسجيل الحضور</h2>
+    <p>${document.getElementById('modal-title').textContent} | ${document.getElementById('modal-sub').textContent}</p>
+    <img src="${img}" width="220"><p>${currentQRUrl}</p>
+    </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+function toast(id) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+function logout() { sessionStorage.clear(); window.location.href='index.html'; }
+async function api(payload) {
+  const url = CONFIG.APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
+  const r   = await fetch(url, { method:'GET', redirect:'follow' });
+  return r.json();
+}
+</script>
+</body>
+</html>
