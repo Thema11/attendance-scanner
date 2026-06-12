@@ -55,7 +55,7 @@ tr:hover td { background:#F9FAFB; }
 </head>
 <body>
 <header>
-  <div class="logo">⚖</div>
+  <img src="logo.svg" alt="شعار" style="height:36px;filter:brightness(0) invert(1);">
   <div class="ht"><h1>لوحة التحكم</h1><p id="org-name">النيابة العامة</p></div>
   <div class="spacer"></div>
   <div class="live"><div class="dot"></div>مباشر</div>
@@ -108,8 +108,10 @@ tr:hover td { background:#F9FAFB; }
 </main>
 
 <script src="config.js"></script>
+<script src="auth.js"></script>
 <script>
-if (sessionStorage.getItem('auth') !== CONFIG.ADMIN_PASSWORD) window.location.href = 'index.html';
+if (!Auth.check()) { /* redirect */ }
+if (Auth.getRole()==='organizer') { document.querySelector('a[href="admin.html"]')?.remove(); }
 document.getElementById('org-name').textContent = CONFIG.ORG_NAME;
 
 let distChart = null, autoTimer = null, tableData = [];
@@ -194,8 +196,8 @@ function exportCSV() {
 }
 
 function setText(id,v) { document.getElementById(id).textContent = v ?? '—'; }
-function logout() { sessionStorage.clear(); window.location.href='index.html'; }
-async function api(payload) {
+function logout() { Auth.logout(); }
+async function apiFn(payload) {
   const url = CONFIG.APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
   const r   = await fetch(url, { method:'GET', redirect:'follow' });
   return r.json();

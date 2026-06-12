@@ -3,133 +3,140 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>نظام الحضور — تسجيل الدخول</title>
+<title>تسجيل الدخول — نظام الحضور</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-:root {
-  --teal:#02807A; --teal2:#309C99; --gold:#AA926D;
-  --bg:#F0FAF9; --white:#fff; --text:#1A1A1A;
-  --muted:#6B7280; --border:#D1FAE5; --radius:14px;
-}
+:root { --teal:#02807A; --teal2:#309C99; --gold:#AA926D; --white:#fff; --muted:#6B7280; --border:#D1FAE5; --danger:#991B1B; --danger-bg:#FEF2F2; --radius:14px; }
 body {
   font-family:'Segoe UI',Tahoma,sans-serif;
-  background:linear-gradient(135deg,#014D49 0%,#02807A 50%,#309C99 100%);
+  background:linear-gradient(150deg,#013330 0%,#02807A 60%,#309C99 100%);
   min-height:100vh; min-height:100dvh;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:20px;
+  display:flex; align-items:center; justify-content:center; padding:20px;
 }
-.login-card {
-  background:var(--white); border-radius:20px;
-  width:100%; max-width:380px;
-  box-shadow:0 24px 60px rgba(0,0,0,.25);
-  overflow:hidden;
-}
-.login-header {
+.card { background:var(--white); border-radius:20px; width:100%; max-width:380px; box-shadow:0 24px 64px rgba(0,0,0,.3); overflow:hidden; }
+.card-header {
   background:linear-gradient(135deg,var(--teal),var(--teal2));
-  padding:32px 28px 24px;
-  text-align:center; color:#fff;
+  padding:32px 24px 24px; text-align:center; color:#fff;
 }
-.logo-wrap { width:72px; height:72px; border-radius:18px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 14px; }
-.login-header h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
-.login-header p  { font-size:13px; opacity:.85; }
-.login-body { padding:28px; }
-.field { margin-bottom:16px; }
+.logo-wrap { width:80px; height:80px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; }
+.logo-wrap img { width:100%; height:100%; object-fit:contain; filter:brightness(0) invert(1); }
+.card-header h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
+.card-header p  { font-size:13px; opacity:.85; }
+.card-body { padding:28px 24px; }
+.hint { font-size:13px; color:var(--muted); text-align:center; margin-bottom:18px; }
+.roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+.role-btn {
+  border:2px solid var(--border); border-radius:12px;
+  padding:14px 10px; background:#F0FAF9;
+  cursor:pointer; text-align:center; transition:all .2s; font-family:inherit;
+}
+.role-btn:hover   { border-color:var(--teal); }
+.role-btn.selected { border-color:var(--teal); background:#ECFDF5; box-shadow:0 0 0 3px rgba(2,128,122,.12); }
+.role-icon { font-size:28px; margin-bottom:6px; }
+.role-name { font-size:14px; font-weight:700; color:#1A1A1A; }
+.role-desc { font-size:11px; color:var(--muted); margin-top:3px; }
 label { display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+.input-wrap { position:relative; }
 input[type="password"] {
-  width:100%; padding:13px 14px;
+  width:100%; padding:13px 44px 13px 14px;
   border:1.5px solid var(--border); border-radius:10px;
-  font-size:16px; font-family:inherit; text-align:center;
-  background:#FAFFFE; color:var(--text); letter-spacing:.2em;
-  transition:border-color .2s;
+  font-size:16px; font-family:inherit; background:#FAFFFE;
+  transition:border-color .2s; text-align:right; letter-spacing:.1em;
 }
-input[type="password"]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.12); }
+input[type="password"]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
+.toggle-pass { position:absolute; left:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:18px; color:var(--muted); padding:4px; }
 .btn-login {
   width:100%; padding:14px; border:none; border-radius:10px;
   background:var(--teal); color:#fff; font-size:16px; font-weight:700;
-  cursor:pointer; font-family:inherit; transition:all .2s;
+  cursor:pointer; font-family:inherit; margin-top:14px; transition:all .2s;
 }
 .btn-login:hover  { background:#016b66; }
 .btn-login:active { transform:scale(.98); }
-.error-msg { background:#FEF2F2; border:1px solid #FCA5A5; border-radius:8px; padding:9px 14px; font-size:13px; color:#991B1B; margin-top:12px; display:none; text-align:center; }
-.error-msg.show { display:block; animation:shake .3s; }
+.error { background:var(--danger-bg); border:1px solid #FCA5A5; border-radius:8px; padding:10px 14px; font-size:13px; color:var(--danger); text-align:center; margin-top:12px; display:none; animation:shake .35s; }
+.error.show { display:block; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
-.roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
-.role-btn {
-  border:1.5px solid var(--border); border-radius:10px;
-  padding:14px 10px; background:var(--bg); cursor:pointer;
-  text-align:center; transition:all .2s; font-family:inherit;
-}
-.role-btn:hover { border-color:var(--teal); background:#ECFDF5; }
-.role-btn.selected { border-color:var(--teal); background:#ECFDF5; box-shadow:0 0 0 3px rgba(2,128,122,.1); }
-.role-icon { font-size:24px; margin-bottom:6px; }
-.role-name { font-size:13px; font-weight:600; color:var(--text); }
-.role-desc { font-size:11px; color:var(--muted); margin-top:2px; }
 </style>
 </head>
 <body>
-<div class="login-card">
-  <div class="login-header">
-    <div class="logo-wrap">⚖</div>
+<div class="card">
+  <div class="card-header">
+    <div class="logo-wrap">
+      <img src="logo.svg" alt="شعار النيابة العامة">
+    </div>
     <h1 id="sys-name">نظام تسجيل الحضور</h1>
     <p id="org-name">النيابة العامة</p>
   </div>
-  <div class="login-body">
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;text-align:center;">اختاري دورك ثم أدخلي كلمة المرور</p>
-
-    <!-- اختيار الدور -->
+  <div class="card-body">
+    <p class="hint">اختر دورك ثم أدخل كلمة المرور</p>
     <div class="roles">
-      <button class="role-btn selected" onclick="selectRole('scanner')" id="role-scanner">
-        <div class="role-icon">📷</div>
-        <div class="role-name">منظم</div>
-        <div class="role-desc">مسح الحضور</div>
-      </button>
-      <button class="role-btn" onclick="selectRole('admin')" id="role-admin">
+      <button class="role-btn selected" id="role-admin" onclick="selectRole('admin')">
         <div class="role-icon">⚙️</div>
         <div class="role-name">مسؤول</div>
-        <div class="role-desc">إدارة النظام</div>
+        <div class="role-desc">إدارة كاملة</div>
+      </button>
+      <button class="role-btn" id="role-organizer" onclick="selectRole('organizer')">
+        <div class="role-icon">📷</div>
+        <div class="role-name">منظم</div>
+        <div class="role-desc">تسجيل الحضور</div>
       </button>
     </div>
-
-    <div class="field" style="margin-top:18px;">
-      <label>كلمة المرور</label>
-      <input type="password" id="password" placeholder="••••••" onkeydown="if(event.key==='Enter')login()">
+    <label>كلمة المرور</label>
+    <div class="input-wrap">
+      <input type="password" id="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')login()">
+      <button class="toggle-pass" onclick="togglePass()" type="button">👁</button>
     </div>
     <button class="btn-login" onclick="login()">دخول</button>
-    <div class="error-msg" id="error-msg">كلمة المرور غير صحيحة</div>
+    <div class="error" id="error">كلمة المرور غير صحيحة</div>
   </div>
 </div>
-
 <script src="config.js"></script>
+<script src="auth.js"></script>
 <script>
-let selectedRole = 'scanner';
-
-// تطبيق الإعدادات
 document.getElementById('sys-name').textContent = CONFIG.SYSTEM_NAME;
 document.getElementById('org-name').textContent = CONFIG.ORG_NAME;
+
+// إذا كان مسجلاً — وجّهيه مباشرة
+if (sessionStorage.getItem('role') && sessionStorage.getItem('auth')) {
+  const role = sessionStorage.getItem('role');
+  window.location.href = role === 'admin' ? 'admin.html' : 'scanner.html';
+}
+
+let selectedRole = 'admin';
 
 function selectRole(role) {
   selectedRole = role;
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('role-' + role).classList.add('selected');
+  document.getElementById('password').value = '';
+  document.getElementById('password').focus();
 }
 
 function login() {
   const pass = document.getElementById('password').value;
-  if (pass === CONFIG.ADMIN_PASSWORD) {
-    sessionStorage.setItem('auth', CONFIG.ADMIN_PASSWORD);
-    sessionStorage.setItem('role', selectedRole);
-    if (selectedRole === 'admin') {
-      window.location.href = 'admin.html';
-    } else {
-      window.location.href = 'scanner.html';
+  const role = Auth.login(pass);
+  if (role) {
+    if (role !== selectedRole && role !== 'admin') {
+      showError('كلمة المرور غير مطابقة للدور المختار');
+      return;
     }
+    window.location.href = role === 'admin' ? 'admin.html' : 'scanner.html';
   } else {
-    const err = document.getElementById('error-msg');
-    err.classList.add('show');
-    setTimeout(() => err.classList.remove('show'), 3000);
-    document.getElementById('password').value = '';
-    document.getElementById('password').focus();
+    showError('كلمة المرور غير صحيحة');
   }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('password').value = '';
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function togglePass() {
+  const inp = document.getElementById('password');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 </script>
 </body>
