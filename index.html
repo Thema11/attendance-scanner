@@ -10,7 +10,7 @@
 
 body {
   font-family:'Segoe UI',Tahoma,sans-serif;
-  background:linear-gradient(150deg,#013330 0%,#02807A 60%,#309C99 100%);
+  background:linear-gradient(150deg,#016460 0%,var(--teal-dark) 60%,var(--teal-mid) 100%);
   min-height:100vh; min-height:100dvh;
   display:flex; align-items:center; justify-content:center; padding:20px;
 }
@@ -20,7 +20,7 @@ body {
   padding:32px 24px 24px; text-align:center; color:#fff;
 }
 .logo-wrap { width:80px; height:80px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; }
-.logo-wrap img { width:100%; height:100%; object-fit:contain; filter:brightness(0) invert(1); }
+.logo-wrap img { width:100%; height:100%; object-fit:contain;  }
 .card-header h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
 .card-header p  { font-size:13px; opacity:.85; }
 .card-body { padding:28px 24px; }
@@ -28,20 +28,20 @@ body {
 .roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
 .role-btn {
   border:2px solid var(--border); border-radius:12px;
-  padding:14px 10px; background:#F0FAF9;
+  padding:14px 10px; background:var(--cream-light);
   cursor:pointer; text-align:center; transition:all .2s; font-family:inherit;
 }
 .role-btn:hover   { border-color:var(--teal); }
-.role-btn.selected { border-color:var(--teal); background:#ECFDF5; box-shadow:0 0 0 3px rgba(2,128,122,.12); }
+.role-btn.selected { border-color:var(--teal); background:var(--success-bg); box-shadow:0 0 0 3px rgba(2,128,122,.12); }
 .role-icon { font-size:28px; margin-bottom:6px; }
-.role-name { font-size:14px; font-weight:700; color:#1A1A1A; }
+.role-name { font-size:14px; font-weight:700; color:var(--text-primary); }
 .role-desc { font-size:11px; color:var(--muted); margin-top:3px; }
 label { display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; }
 .input-wrap { position:relative; }
 input[type="password"] {
   width:100%; padding:13px 44px 13px 14px;
   border:1.5px solid var(--border); border-radius:10px;
-  font-size:16px; font-family:inherit; background:#FAFFFE;
+  font-size:16px; font-family:inherit; background:var(--surface);
   transition:border-color .2s; text-align:right; letter-spacing:.1em;
 }
 input[type="password"]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
@@ -51,9 +51,9 @@ input[type="password"]:focus { outline:none; border-color:var(--teal); box-shado
   background:var(--teal); color:#fff; font-size:16px; font-weight:700;
   cursor:pointer; font-family:inherit; margin-top:14px; transition:all .2s;
 }
-.btn-login:hover  { background:#016b66; }
+.btn-login:hover  { background:#016460; }
 .btn-login:active { transform:scale(.98); }
-.error { background:var(--danger-bg); border:1px solid #FCA5A5; border-radius:8px; padding:10px 14px; font-size:13px; color:var(--danger); text-align:center; margin-top:12px; display:none; animation:shake .35s; }
+.error { background:var(--danger-bg); border:1px solid var(--danger-bdr); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--danger); text-align:center; margin-top:12px; display:none; animation:shake .35s; }
 .error.show { display:block; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 
@@ -62,7 +62,7 @@ body { background:linear-gradient(150deg,var(--teal-dark) 0%,var(--teal) 60%,var
 .card { background:var(--bg-card); border-radius:var(--radius-xl); width:100%; max-width:380px; box-shadow:0 24px 64px rgba(0,0,0,.28); overflow:hidden; }
 .card-header { background:linear-gradient(135deg,var(--teal-dark),var(--teal)); padding:30px 24px 22px; text-align:center; color:#fff; }
 .logo-wrap { width:76px; height:76px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; }
-.logo-wrap img { width:100%; height:100%; object-fit:contain; filter:brightness(0) invert(1); }
+.logo-wrap img { width:100%; height:100%; object-fit:contain;  }
 .card-header h1 { font-size:20px; font-weight:700; margin-bottom:3px; }
 .card-header p  { font-size:13px; opacity:.84; }
 .card-body { padding:26px 22px; }
