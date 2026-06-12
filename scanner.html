@@ -113,7 +113,8 @@ textarea  { width:100%; padding:9px 12px; border:1.5px solid var(--border); bord
 </head>
 <body>
 <header>
-  <img src="logo.svg" alt="شعار النيابة العامة" class="logo">
+  <img src="logo.svg" alt="شعار" class="logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
+  <div id="logo-fallback" style="display:none;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.2);align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">⚖</div>
   <div class="htext">
     <h1 id="sys-name">تسجيل الحضور</h1>
     <p id="org-name">النيابة العامة</p>
@@ -245,52 +246,94 @@ function loadJsQR() {
 }
 
 async function startCamera() {
-  const btn = document.getElementById('start-btn');
-  btn.disabled = true;
-  btn.textContent = 'جارٍ التشغيل...';
-  document.getElementById('state-msg').textContent = 'جارٍ تشغيل الكاميرا...';
+  const btn     = document.getElementById('start-btn');
+  const stateEl = document.getElementById('cam-state');
+  const msgEl   = document.getElementById('state-msg');
 
+  btn.disabled        = true;
+  btn.textContent     = 'جارٍ التشغيل...';
+  msgEl.textContent   = 'جارٍ تشغيل الكاميرا...';
+
+  // 1. تحقق من دعم المتصفح
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    btn.disabled    = false;
+    btn.textContent = 'إعادة المحاولة';
+    msgEl.textContent = 'متصفحك لا يدعم الكاميرا — جربي Chrome أو Safari';
+    return;
+  }
+
+  // 2. تحميل jsQR
   try {
-    // تحميل jsQR أولاً
     await loadJsQR();
+  } catch(e) {
+    btn.disabled    = false;
+    btn.textContent = 'إعادة المحاولة';
+    msgEl.textContent = 'فشل تحميل مكتبة المسح — تحققي من الإنترنت';
+    return;
+  }
 
-    // طلب الكاميرا
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width     : { ideal: 1920 },
-        height    : { ideal: 1080 },
-      }
-    });
+  // 3. طلب الكاميرا بثلاث محاولات متدرجة
+  const attempts = [
+    { facingMode: 'environment' },          // خلفية
+    { facingMode: 'user' },                 // أمامية
+    true,                                   // أي كاميرا
+  ];
 
-    const video = document.getElementById('cam-video');
-    video.srcObject = camStream;
+  let stream = null;
+  let lastErr = null;
 
-    // انتظار تشغيل الفيديو فعلياً
-    await new Promise((resolve, reject) => {
-      video.onloadedmetadata = () => {
-        video.play().then(resolve).catch(reject);
-      };
-      video.onerror = reject;
-      setTimeout(reject, 8000); // timeout 8 ثوانٍ
-    });
+  for (const constraint of attempts) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: constraint });
+      break;
+    } catch(e) {
+      lastErr = e;
+      // إذا رُفض الإذن — لا فائدة من المحاولات الأخرى
+      if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') break;
+    }
+  }
 
-    document.getElementById('cam-state').classList.add('hide');
-    document.getElementById('vf-hint').textContent = 'وجّه الكاميرا نحو رمز QR';
-    scanning = true;
-    tickScan();
-
-  } catch(err) {
-    btn.disabled = false;
+  if (!stream) {
+    btn.disabled    = false;
     btn.textContent = 'إعادة المحاولة';
     const msgs = {
-      NotAllowedError      : 'رُفض إذن الكاميرا — اضغطي "سماح" عند الطلب ثم أعيدي المحاولة',
-      NotFoundError        : 'لم يُعثر على كاميرا خلفية',
-      OverconstrainedError : 'الكاميرا لا تدعم الدقة المطلوبة',
+      NotAllowedError       : 'رُفض إذن الكاميرا
+افتحي إعدادات المتصفح وأعطي إذن الكاميرا لهذا الموقع',
+      PermissionDeniedError : 'رُفض إذن الكاميرا
+افتحي إعدادات المتصفح وأعطي إذن الكاميرا لهذا الموقع',
+      NotFoundError         : 'لم يُعثر على كاميرا — تأكدي من توصيل الكاميرا',
+      NotReadableError      : 'الكاميرا مستخدمة من تطبيق آخر — أغلقيه وأعيدي',
+      OverconstrainedError  : 'الكاميرا لا تتوافق مع الجهاز',
     };
-    document.getElementById('state-msg').textContent =
-      msgs[err.name] || ('خطأ: ' + err.message);
+    const name = lastErr?.name || '';
+    msgEl.textContent = msgs[name] || 'تعذّر تشغيل الكاميرا — جربي متصفحاً آخر';
+    return;
   }
+
+  // 4. تشغيل الفيديو
+  camStream = stream;
+  const video = document.getElementById('cam-video');
+  video.srcObject = stream;
+
+  try {
+    await video.play();
+  } catch(playErr) {
+    // بعض المتصفحات تحتاج تدخل المستخدم — نحاول مجدداً
+    await new Promise(r => setTimeout(r, 500));
+    try { await video.play(); } catch(e) { /* نكمل */ }
+  }
+
+  // 5. انتظار بيانات الفيديو
+  await new Promise((resolve) => {
+    if (video.readyState >= 2) { resolve(); return; }
+    video.addEventListener('loadeddata', resolve, { once: true });
+    setTimeout(resolve, 3000); // max wait 3s
+  });
+
+  stateEl.classList.add('hide');
+  document.getElementById('vf-hint').textContent = 'وجّه الكاميرا نحو رمز QR';
+  scanning = true;
+  tickScan();
 }
 
 // ── حلقة المسح المُحسَّنة ─────────────────────────────────
