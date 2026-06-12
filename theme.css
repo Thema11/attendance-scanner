@@ -1,0 +1,403 @@
+/* ============================================================
+   theme.css — الهوية البصرية الموحدة
+   النيابة العامة — نظام تسجيل الحضور
+   ============================================================ */
+
+/* ── خط النظام ── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+
+/* ── المتغيرات الموحدة ── */
+:root {
+  /* الألوان الأساسية */
+  --teal        : #02807A;
+  --teal-dark   : #016460;
+  --teal-light  : #309C99;
+  --teal-pale   : #E6F4F4;
+  --gold        : #AA926D;
+  --gold-light  : #C8B08A;
+  --gold-pale   : #FAF6F0;
+
+  /* خلفيات */
+  --bg          : #F4F7F7;
+  --bg-card     : #FFFFFF;
+  --bg-input    : #FAFFFE;
+  --bg-sidebar  : #F0F5F5;
+
+  /* نصوص */
+  --text-primary  : #1C2626;
+  --text-secondary: #4A5568;
+  --text-muted    : #718096;
+  --text-inverse  : #FFFFFF;
+
+  /* حدود */
+  --border      : #D6E8E8;
+  --border-focus: var(--teal);
+  --border-card : #E2EDED;
+
+  /* حالات */
+  --success     : #065F46;
+  --success-bg  : #ECFDF5;
+  --success-bdr : #6EE7B7;
+  --warning     : #7B4F00;
+  --warning-bg  : #FFFBEB;
+  --warning-bdr : #FCD34D;
+  --danger      : #991B1B;
+  --danger-bg   : #FEF2F2;
+  --danger-bdr  : #FCA5A5;
+  --info        : #1E40AF;
+  --info-bg     : #EFF6FF;
+
+  /* الـ Badges */
+  --badge-present-bg  : #ECFDF5;
+  --badge-present-fg  : #065F46;
+  --badge-late-bg     : #FFFBEB;
+  --badge-late-fg     : #7B4F00;
+  --badge-override-bg : #F5F3FF;
+  --badge-override-fg : #4C1D95;
+
+  /* أبعاد */
+  --radius-sm   : 6px;
+  --radius      : 10px;
+  --radius-md   : 12px;
+  --radius-lg   : 16px;
+  --radius-xl   : 20px;
+  --radius-full : 9999px;
+
+  /* ظلال */
+  --shadow-xs   : 0 1px 2px rgba(2,128,122,.06);
+  --shadow-sm   : 0 1px 4px rgba(2,128,122,.08), 0 0 0 1px rgba(2,128,122,.04);
+  --shadow-md   : 0 4px 12px rgba(2,128,122,.1);
+  --shadow-lg   : 0 8px 24px rgba(2,128,122,.12);
+  --shadow-header: 0 2px 8px rgba(2,128,122,.18);
+
+  /* الخط */
+  --font        : 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+
+  /* انتقالات */
+  --transition  : all .18s ease;
+}
+
+/* ── إعادة ضبط عامة ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family   : var(--font);
+  font-size     : 14px;
+  line-height   : 1.6;
+  color         : var(--text-primary);
+  background    : var(--bg);
+  -webkit-font-smoothing : antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  direction     : rtl;
+}
+
+/* ── Header موحد ── */
+.app-header {
+  background    : linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+  color         : var(--text-inverse);
+  padding       : 0 20px;
+  height        : 58px;
+  display       : flex;
+  align-items   : center;
+  gap           : 14px;
+  position      : sticky;
+  top           : 0;
+  z-index       : 50;
+  box-shadow    : var(--shadow-header);
+}
+.app-header .logo-img {
+  height        : 38px;
+  width         : auto;
+  object-fit    : contain;
+  filter        : brightness(0) invert(1);
+  flex-shrink   : 0;
+}
+.app-header .logo-fallback {
+  display       : none;
+  width         : 38px;
+  height        : 38px;
+  border-radius : var(--radius-sm);
+  background    : rgba(255,255,255,.18);
+  align-items   : center;
+  justify-content: center;
+  font-size     : 20px;
+  flex-shrink   : 0;
+}
+.app-header .header-title { flex: 1; }
+.app-header .header-title h1 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.app-header .header-title p  { font-size: 11px; opacity: .78; margin-top: 1px; }
+.app-header .header-clock {
+  font-size     : 12px;
+  font-weight   : 600;
+  background    : rgba(255,255,255,.12);
+  padding       : 4px 11px;
+  border-radius : var(--radius-full);
+  letter-spacing: .03em;
+  font-variant-numeric: tabular-nums;
+}
+.app-header .nav-btn {
+  background    : rgba(255,255,255,.12);
+  border        : none;
+  color         : #fff;
+  padding       : 6px 13px;
+  border-radius : var(--radius-sm);
+  font-size     : 12px;
+  font-weight   : 600;
+  cursor        : pointer;
+  text-decoration: none;
+  font-family   : var(--font);
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 5px;
+  transition    : var(--transition);
+}
+.app-header .nav-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ── Cards ── */
+.card {
+  background    : var(--bg-card);
+  border-radius : var(--radius-md);
+  border        : 1px solid var(--border-card);
+  padding       : 18px;
+  box-shadow    : var(--shadow-xs);
+}
+.card-title {
+  font-size     : 11px;
+  font-weight   : 700;
+  color         : var(--text-muted);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  margin-bottom : 14px;
+  display       : flex;
+  align-items   : center;
+  gap           : 6px;
+}
+
+/* ── KPI Cards ── */
+.kpi-card {
+  background    : var(--bg-card);
+  border-radius : var(--radius-md);
+  border        : 1px solid var(--border-card);
+  padding       : 16px 18px;
+  text-align    : center;
+  box-shadow    : var(--shadow-xs);
+  transition    : var(--transition);
+}
+.kpi-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.kpi-val  { font-size: 28px; font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; }
+.kpi-val.warn  { color: var(--warning); }
+.kpi-val.small { font-size: 14px; font-weight: 600; }
+.kpi-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── Inputs & Forms ── */
+input, select, textarea {
+  width         : 100%;
+  padding       : 10px 13px;
+  border        : 1.5px solid var(--border);
+  border-radius : var(--radius);
+  font-size     : 14px;
+  font-family   : var(--font);
+  background    : var(--bg-input);
+  color         : var(--text-primary);
+  transition    : border-color .18s, box-shadow .18s;
+  outline       : none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color  : var(--border-focus);
+  box-shadow    : 0 0 0 3px rgba(2,128,122,.1);
+}
+input:hover:not(:focus), select:hover:not(:focus) {
+  border-color  : var(--teal-light);
+}
+input[type="time"] {
+  font-variant-numeric: tabular-nums;
+  cursor        : text;
+  -webkit-appearance: none;
+}
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer; opacity: .5; pointer-events: auto;
+}
+label {
+  display       : block;
+  font-size     : 13px;
+  font-weight   : 500;
+  color         : var(--text-secondary);
+  margin-bottom : 5px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display       : inline-flex;
+  align-items   : center;
+  justify-content: center;
+  gap           : 7px;
+  padding       : 11px 18px;
+  border        : none;
+  border-radius : var(--radius);
+  font-size     : 14px;
+  font-weight   : 600;
+  font-family   : var(--font);
+  cursor        : pointer;
+  transition    : var(--transition);
+  text-decoration: none;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary   { background: var(--teal);    color: #fff; }
+.btn-primary:hover   { background: var(--teal-dark); }
+.btn-secondary { background: var(--bg);     color: var(--text-secondary); border: 1.5px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger    { background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger-bdr); }
+.btn-archive   { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-bdr); }
+.btn-full { width: 100%; margin-top: 10px; }
+.btn-sm { padding: 5px 11px; font-size: 12px; border-radius: var(--radius-sm); }
+
+/* ── Badges ── */
+.badge {
+  display       : inline-block;
+  padding       : 3px 9px;
+  border-radius : var(--radius-full);
+  font-size     : 11px;
+  font-weight   : 600;
+}
+.badge-present  { background: var(--badge-present-bg);  color: var(--badge-present-fg);  }
+.badge-late     { background: var(--badge-late-bg);     color: var(--badge-late-fg);     }
+.badge-override { background: var(--badge-override-bg); color: var(--badge-override-fg); }
+.badge-active   { background: var(--badge-present-bg);  color: var(--badge-present-fg);  }
+.badge-inactive { background: #F1F5F5;                  color: var(--text-muted);        }
+.badge-archived { background: var(--warning-bg);        color: var(--warning);           }
+
+/* ── Banners / Alerts ── */
+.banner {
+  border-radius : var(--radius);
+  padding       : 12px 15px;
+  display       : none;
+  align-items   : center;
+  gap           : 11px;
+  margin-bottom : 12px;
+  animation     : fadeSlideDown .25s ease;
+}
+.banner.show    { display: flex; }
+.banner.valid   { background: var(--success-bg); color: var(--success); border: 1.5px solid var(--success-bdr); }
+.banner.invalid { background: var(--danger-bg);  color: var(--danger);  border: 1.5px solid var(--danger-bdr);  }
+.banner.warning { background: var(--warning-bg); color: var(--warning); border: 1.5px solid var(--warning-bdr); }
+.banner .b-icon  { font-size: 22px; flex-shrink: 0; }
+.banner .b-title { font-size: 14px; font-weight: 600; }
+.banner .b-sub   { font-size: 12px; margin-top: 2px; opacity: .85; }
+
+/* ── Tables ── */
+.att-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.att-table th {
+  text-align    : right;
+  padding       : 9px 11px;
+  color         : var(--text-muted);
+  font-weight   : 600;
+  border-bottom : 2px solid var(--border);
+  font-size     : 12px;
+  background    : var(--bg-sidebar);
+}
+.att-table td { padding: 9px 11px; border-bottom: 1px solid var(--border); }
+.att-table tr:last-child td { border-bottom: none; }
+.att-table tr:hover td { background: var(--teal-pale); }
+
+/* ── Session Pill ── */
+.session-pill {
+  background    : linear-gradient(135deg, var(--teal), var(--teal-light));
+  color         : #fff;
+  border-radius : var(--radius-md);
+  padding       : 13px 17px;
+  font-size     : 13px;
+  margin-bottom : 12px;
+  box-shadow    : var(--shadow-md);
+}
+.session-pill strong { display: block; font-size: 15px; margin-bottom: 3px; }
+
+/* ── Modal ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+  backdrop-filter: blur(3px);
+}
+.overlay.show { display: flex; }
+.modal {
+  background    : var(--bg-card);
+  border-radius : var(--radius-lg);
+  width         : 100%;
+  max-width     : 380px;
+  overflow      : hidden;
+  box-shadow    : var(--shadow-lg);
+  animation     : slideUp .28s ease;
+}
+.modal-head {
+  background    : var(--warning-bg);
+  border-bottom : 1.5px solid var(--warning-bdr);
+  padding       : 14px 18px;
+  display       : flex;
+  align-items   : center;
+  gap           : 10px;
+}
+.modal-head h3 { font-size: 15px; font-weight: 700; color: var(--warning); }
+.modal-body    { padding: 18px; font-size: 14px; line-height: 1.65; }
+.modal-foot    { display: flex; gap: 9px; padding: 0 18px 18px; }
+.modal-foot .btn { flex: 1; margin: 0; padding: 11px; font-size: 14px; }
+
+/* ── Flash ── */
+.flash {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: #fff; z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+  text-align: center; padding: 30px;
+}
+.flash.show { opacity: 1; pointer-events: all; }
+.flash-check { font-size: 76px; margin-bottom: 14px; }
+.flash h2 { font-size: 22px; font-weight: 700; margin-bottom: 7px; }
+.flash p  { font-size: 15px; opacity: .85; }
+.flash .late-tag {
+  margin-top: 14px;
+  background: rgba(255,255,255,.18);
+  border-radius: var(--radius-full);
+  padding: 5px 18px; font-size: 13px;
+}
+
+/* ── Toast ── */
+.toast {
+  background    : var(--success-bg);
+  border        : 1px solid var(--success-bdr);
+  border-radius : var(--radius);
+  padding       : 9px 13px;
+  font-size     : 13px;
+  color         : var(--success);
+  margin-top    : 9px;
+  display       : none;
+}
+.toast.error { background: var(--danger-bg); border-color: var(--danger-bdr); color: var(--danger); }
+.toast.show  { display: block; animation: fadeSlideDown .3s ease; }
+
+/* ── Empty State ── */
+.empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 24px; }
+
+/* ── Animations ── */
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes scanAnim {
+  0%  { top: 2%; }
+  50% { top: 94%; }
+  100%{ top: 2%; }
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .4; }
+}

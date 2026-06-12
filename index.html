@@ -2,11 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet" href="theme.css">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>تسجيل الدخول — نظام الحضور</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-:root { --teal:#02807A; --teal2:#309C99; --gold:#AA926D; --white:#fff; --muted:#6B7280; --border:#D1FAE5; --danger:#991B1B; --danger-bg:#FEF2F2; --radius:14px; }
+
 body {
   font-family:'Segoe UI',Tahoma,sans-serif;
   background:linear-gradient(150deg,#013330 0%,#02807A 60%,#309C99 100%);
@@ -55,6 +56,33 @@ input[type="password"]:focus { outline:none; border-color:var(--teal); box-shado
 .error { background:var(--danger-bg); border:1px solid #FCA5A5; border-radius:8px; padding:10px 14px; font-size:13px; color:var(--danger); text-align:center; margin-top:12px; display:none; animation:shake .35s; }
 .error.show { display:block; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+/* login page */
+body { background:linear-gradient(150deg,var(--teal-dark) 0%,var(--teal) 60%,var(--teal-light) 100%); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+.card { background:var(--bg-card); border-radius:var(--radius-xl); width:100%; max-width:380px; box-shadow:0 24px 64px rgba(0,0,0,.28); overflow:hidden; }
+.card-header { background:linear-gradient(135deg,var(--teal-dark),var(--teal)); padding:30px 24px 22px; text-align:center; color:#fff; }
+.logo-wrap { width:76px; height:76px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; }
+.logo-wrap img { width:100%; height:100%; object-fit:contain; filter:brightness(0) invert(1); }
+.card-header h1 { font-size:20px; font-weight:700; margin-bottom:3px; }
+.card-header p  { font-size:13px; opacity:.84; }
+.card-body { padding:26px 22px; }
+.hint { font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:16px; }
+.roles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.role-btn { border:2px solid var(--border); border-radius:var(--radius-md); padding:14px 10px; background:var(--bg-sidebar); cursor:pointer; text-align:center; transition:var(--transition); font-family:var(--font); }
+.role-btn:hover   { border-color:var(--teal-light); background:var(--teal-pale); }
+.role-btn.selected { border-color:var(--teal); background:var(--teal-pale); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
+.role-icon { font-size:26px; margin-bottom:6px; }
+.role-name { font-size:14px; font-weight:700; color:var(--text-primary); }
+.role-desc { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.input-wrap { position:relative; }
+.toggle-pass { position:absolute; left:11px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:18px; color:var(--text-muted); padding:4px; }
+.btn-login { width:100%; padding:13px; border:none; border-radius:var(--radius); background:var(--teal); color:#fff; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--font); margin-top:13px; transition:var(--transition); }
+.btn-login:hover { background:var(--teal-dark); }
+.btn-login:active { transform:scale(.98); }
+.error { background:var(--danger-bg); border:1px solid var(--danger-bdr); border-radius:var(--radius); padding:10px 14px; font-size:13px; color:var(--danger); text-align:center; margin-top:11px; display:none; animation:shake .35s; }
+.error.show { display:block; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+
 </style>
 </head>
 <body>

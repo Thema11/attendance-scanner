@@ -2,12 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet" href="theme.css">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>الإدارة — نظام الحضور</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-:root { --teal:#02807A; --teal2:#309C99; --gold:#AA926D; --bg:#F0FAF9; --white:#fff; --text:#1A1A1A; --muted:#6B7280; --border:#D1FAE5; --radius:12px; --success:#065F46; --success-bg:#ECFDF5; --danger:#991B1B; --danger-bg:#FEF2F2; --warning:#92400E; --warning-bg:#FFFBEB; }
+
 body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 header { background:var(--teal); color:#fff; padding:10px 18px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:50; box-shadow:0 2px 12px rgba(2,128,122,.3); }
 .logo { height:36px; filter:brightness(0) invert(1); }
@@ -25,8 +26,23 @@ main { padding:16px; max-width:960px; margin:0 auto; }
 .fg { margin-bottom:11px; }
 label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:5px; }
 input, select { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:9px; font-size:14px; font-family:inherit; background:#FAFFFE; color:var(--text); transition:border-color .2s; }
-input[type="time"] { font-size:18px; font-weight:600; color:var(--teal); padding:12px; text-align:center; letter-spacing:.05em; cursor:pointer; }
-input[type="time"]::-webkit-calendar-picker-indicator { cursor:pointer; opacity:.7; }
+input[type="time"] {
+  font-variant-numeric: tabular-nums;
+  cursor: text;
+  -webkit-appearance: none; /* يُزيل الشكل الافتراضي على iOS */
+  appearance: none;
+}
+/* أيقونة الساعة — تفتح الـ picker عند الضغط */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: .55;
+  pointer-events: auto; /* مهم: لا تمنع الضغط */
+  margin-right: 2px;
+}
+/* تأكيد: لا يوجد عنصر يحجب الحقل */
+input[type="time"]:hover {
+  border-color: var(--teal2);
+}
 input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
 .btn { display:flex; align-items:center; justify-content:center; gap:6px; padding:11px 16px; border:none; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; width:100%; margin-top:8px; transition:all .2s; }
 .btn-primary   { background:var(--teal); color:#fff; }
@@ -90,6 +106,63 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
 .dup-warn.show { display:block; }
 @keyframes fadeIn  { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
 @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+
+/* admin page */
+header { background:linear-gradient(135deg,var(--teal-dark) 0%,var(--teal) 100%); color:#fff; padding:0 20px; height:58px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:50; box-shadow:var(--shadow-header); }
+.logo { height:36px; filter:brightness(0) invert(1); flex-shrink:0; }
+.logo-fb { display:none; width:36px; height:36px; border-radius:var(--radius-sm); background:rgba(255,255,255,.18); align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.ht { flex:1; }
+.ht h1 { font-size:15px; font-weight:600; }
+.ht p  { font-size:11px; opacity:.78; }
+.nav { display:flex; gap:6px; }
+.nav a, .nav button { background:rgba(255,255,255,.12); border:none; color:#fff; padding:6px 12px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; font-family:var(--font); transition:var(--transition); }
+.nav a:hover, .nav button:hover { background:rgba(255,255,255,.22); }
+main { padding:16px; max-width:960px; margin:0 auto; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:640px){ .grid2 { grid-template-columns:1fr; } }
+.fg { margin-bottom:11px; }
+.btn-sm { padding:5px 11px; font-size:12px; border-radius:var(--radius-sm); border:none; cursor:pointer; font-family:var(--font); font-weight:600; transition:var(--transition); }
+.btn-activate   { background:var(--success-bg);  color:var(--success); }
+.btn-deactivate { background:var(--danger-bg);   color:var(--danger);  }
+.btn-qr         { background:var(--badge-override-bg); color:var(--badge-override-fg); }
+.btn-edit-sm    { background:var(--teal-pale);   color:var(--teal);    }
+.btn-del-sm     { background:var(--danger-bg);   color:var(--danger);  }
+/* Workshop list */
+.ws-item { border:1px solid var(--border-card); border-radius:var(--radius); padding:11px 13px; margin-bottom:8px; display:flex; align-items:center; gap:9px; cursor:pointer; transition:var(--transition); }
+.ws-item:hover { border-color:var(--teal-light); background:var(--teal-pale); }
+.ws-item.selected { border-color:var(--teal); background:var(--teal-pale); }
+.ws-icon { width:34px; height:34px; border-radius:var(--radius-sm); background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.ws-info { flex:1; min-width:0; }
+.ws-name { font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ws-meta { font-size:11px; color:var(--text-muted); margin-top:1px; }
+.ws-actions { display:flex; gap:4px; flex-shrink:0; }
+/* QR rows */
+.qr-row { border:1px solid var(--border-card); border-radius:var(--radius); padding:10px 12px; margin-bottom:7px; display:flex; align-items:center; gap:8px; transition:var(--transition); }
+.qr-row:hover { background:var(--bg-sidebar); }
+.qr-day { width:32px; height:32px; border-radius:var(--radius-sm); background:var(--teal-pale); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--teal); flex-shrink:0; }
+.qr-info { flex:1; }
+.qr-title    { font-weight:600; font-size:13px; }
+.qr-ws-label { font-size:11px; color:var(--teal); font-weight:500; margin:1px 0; }
+.qr-date     { font-size:11px; color:var(--text-muted); }
+.qr-att-count { font-size:11px; color:var(--success); font-weight:600; margin-top:2px; }
+.qr-acts { display:flex; gap:4px; }
+.dup-warn { background:var(--warning-bg); border:1px solid var(--warning-bdr); border-radius:var(--radius); padding:8px 12px; font-size:12px; color:var(--warning); margin-top:8px; display:none; }
+.dup-warn.show { display:block; }
+/* Confirm modal */
+.modal-head.danger { background:var(--danger-bg); border-color:var(--danger-bdr); }
+.modal-head.danger h3 { color:var(--danger); }
+.btn-confirm-del    { background:var(--danger); color:#fff; }
+.btn-confirm-cancel { background:var(--bg); color:var(--text-muted); border:1.5px solid var(--border); }
+.btn-print { background:var(--teal); color:#fff; }
+.btn-close-m { background:var(--bg); color:var(--text-muted); border:1.5px solid var(--border); }
+.btn-override { background:var(--teal); color:#fff; }
+.btn-cancel   { background:var(--bg); color:var(--text-muted); border:1.5px solid var(--border); }
+/* QR modal */
+.qr-modal-body { padding:18px; text-align:center; }
+.qr-url { font-size:10px; color:var(--text-muted); word-break:break-all; background:var(--bg); border-radius:var(--radius-sm); padding:7px 10px; margin-bottom:12px; }
+.modal-qr-foot, .modal-foot { display:flex; gap:8px; padding:0 18px 18px; }
+.modal-qr-foot .btn, .modal-foot .btn { margin:0; flex:1; padding:11px; font-size:14px; }
+
 </style>
 </head>
 <body>
@@ -145,15 +218,15 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
       <div class="fg"><label>تاريخ اليوم</label><input type="date" id="qr-date" oninput="checkQRDuplicate()"></div>
       <div class="fg">
         <label>بدء القبول <span style="font-size:11px;color:var(--muted);">(التاريخ من حقل تاريخ اليوم أعلاه)</span></label>
-        <input type="time" id="qr-from-time" placeholder="08:00" style="direction:ltr;text-align:center;">
+        <input type="time" id="qr-from-time">
       </div>
       <div class="fg">
         <label>انتهاء القبول</label>
-        <input type="time" id="qr-until-time" placeholder="17:00" style="direction:ltr;text-align:center;">
+        <input type="time" id="qr-until-time">
       </div>
       <div class="fg">
         <label>اعتبار متأخر بعد</label>
-        <input type="time" id="qr-late-time" placeholder="08:15" style="direction:ltr;text-align:center;">
+        <input type="time" id="qr-late-time">
       </div>
       <div class="dup-warn" id="qr-dup-warn">⚠️ يوم بنفس الرقم أو التاريخ موجود — تأكدي قبل الإضافة</div>
       <button class="btn btn-primary" onclick="createQR()">✨ توليد رمز QR</button>
