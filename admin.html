@@ -50,8 +50,9 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
 .qr-day { width:32px; height:32px; border-radius:8px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--teal); flex-shrink:0; }
 .qr-info { flex:1; }
 .qr-title    { font-weight:600; font-size:13px; }
-.qr-ws-label { font-size:11px; color:var(--teal); font-weight:500; margin:1px 0; }
-.qr-date     { font-size:11px; color:var(--muted); }
+.qr-ws-label   { font-size:11px; color:var(--teal); font-weight:500; margin:1px 0; }
+.qr-date       { font-size:11px; color:var(--muted); }
+.qr-att-count  { font-size:11px; color:var(--success); font-weight:600; margin-top:2px; }
 .qr-acts  { display:flex; gap:4px; }
 .badge { font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; }
 .badge-active   { background:var(--success-bg); color:var(--success); }
@@ -135,6 +136,10 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
     <div class="card" id="qr-form-card" style="display:none;">
       <div class="card-title">📎 إضافة يوم + رمز QR</div>
       <div class="fg"><label>رقم اليوم</label><input type="number" id="qr-day" min="1" value="1" oninput="checkQRDuplicate()"></div>
+      <div class="fg">
+        <label>اسم اليوم / العنوان <span style="color:var(--teal);font-size:11px;">(يظهر في بطاقة اليوم)</span></label>
+        <input type="text" id="qr-day-name" placeholder="مثال: ورشة حوكمة البيانات — الجلسة الأولى">
+      </div>
       <div class="fg"><label>تاريخ اليوم</label><input type="date" id="qr-date" oninput="checkQRDuplicate()"></div>
       <div class="fg"><label>بدء القبول</label><input type="datetime-local" id="qr-from"></div>
       <div class="fg"><label>انتهاء القبول</label><input type="datetime-local" id="qr-until"></div>
@@ -302,22 +307,37 @@ async function loadQRList(wsId) {
   if (!allQRList.length) { el.innerHTML = '<div class="empty">لا توجد رموز بعد</div>'; return; }
   // جلب اسم الورشة المحددة
   const wsName = allWorkshops.find(w => w.workshop_id === selectedWS)?.name || '';
-  el.innerHTML = allQRList.map(q => `
+  el.innerHTML = allQRList.map(q => {
+    const label = q.day_name ? q.day_name : wsName;
+    return `
     <div class="qr-row">
       <div class="qr-day">${q.day_number}</div>
       <div class="qr-info">
         <div class="qr-title">اليوم ${q.day_number}</div>
-        <div class="qr-ws-label">${escHtml(wsName)}</div>
+        ${label ? `<div class="qr-ws-label">${escHtml(label)}</div>` : ''}
         <div class="qr-date">${q.event_date}</div>
+        <div class="qr-att-count" id="att-${q.qr_id}">جارٍ التحميل...</div>
       </div>
       <span class="badge ${q.is_active?'badge-active':'badge-inactive'}">${q.is_active?'مفعّل':'معلّق'}</span>
       <div class="qr-acts">
         <button class="btn-sm ${q.is_active?'btn-deactivate':'btn-activate'}"
           onclick="toggleQR('${q.qr_id}',${!q.is_active})">${q.is_active?'إيقاف':'تفعيل'}</button>
         <button class="btn-sm btn-qr" onclick="viewQR('${q.url}','${q.qr_id}','${q.event_date}')">QR</button>
-        <button class="btn-sm btn-del-sm" onclick="deleteQRConfirm('${q.qr_id}',${q.day_number},'${escHtml(wsName)}')">🗑</button>
+        <button class="btn-sm btn-del-sm" onclick="deleteQRConfirm('${q.qr_id}',${q.day_number},'${escHtml(label)}')">🗑</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  // جلب عدد الحضور لكل يوم
+  allQRList.forEach(q => {
+    apiCall({ action:'getAttendanceCount', workshop_id: selectedWS, day_number: q.day_number })
+      .then(res => {
+        const el = document.getElementById('att-' + q.qr_id);
+        if (el) el.textContent = res.ok ? '👥 ' + res.count + ' حاضر' : '';
+      }).catch(() => {
+        const el = document.getElementById('att-' + q.qr_id);
+        if (el) el.textContent = '';
+      });
+  });
 }
 
 function showQRForm() {
@@ -335,8 +355,10 @@ function checkQRDuplicate() {
 
 async function createQR() {
   if (!selectedWS) { alert('اختاري ورشة أولاً'); return; }
+  const dayName = document.getElementById('qr-day-name').value.trim();
   const res = await apiCall({ action:'createQR', workshop_id:selectedWS,
     day_number : document.getElementById('qr-day').value,
+    day_name   : dayName,
     event_date : document.getElementById('qr-date').value,
     valid_from : document.getElementById('qr-from').value,
     valid_until: document.getElementById('qr-until').value,
