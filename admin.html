@@ -49,8 +49,9 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
 .qr-row { border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
 .qr-day { width:32px; height:32px; border-radius:8px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--teal); flex-shrink:0; }
 .qr-info { flex:1; }
-.qr-title { font-weight:600; font-size:13px; }
-.qr-date  { font-size:11px; color:var(--muted); }
+.qr-title    { font-weight:600; font-size:13px; }
+.qr-ws-label { font-size:11px; color:var(--teal); font-weight:500; margin:1px 0; }
+.qr-date     { font-size:11px; color:var(--muted); }
 .qr-acts  { display:flex; gap:4px; }
 .badge { font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; }
 .badge-active   { background:var(--success-bg); color:var(--success); }
@@ -90,7 +91,7 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
 </head>
 <body>
 <header>
-  <img src="logo.svg" alt="شعار" class="logo">
+  <img src="logo.svg" alt="شعار" class="logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.2);align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">⚖</div>
   <div class="ht"><h1>إدارة النظام</h1><p id="org-name"></p></div>
   <div class="nav">
     <a href="dashboard.html">📊 لوحة التحكم</a>
@@ -299,11 +300,14 @@ async function loadQRList(wsId) {
   allQRList = res.qr_list || [];
   const el  = document.getElementById('qr-list');
   if (!allQRList.length) { el.innerHTML = '<div class="empty">لا توجد رموز بعد</div>'; return; }
+  // جلب اسم الورشة المحددة
+  const wsName = allWorkshops.find(w => w.workshop_id === selectedWS)?.name || '';
   el.innerHTML = allQRList.map(q => `
     <div class="qr-row">
       <div class="qr-day">${q.day_number}</div>
       <div class="qr-info">
         <div class="qr-title">اليوم ${q.day_number}</div>
+        <div class="qr-ws-label">${escHtml(wsName)}</div>
         <div class="qr-date">${q.event_date}</div>
       </div>
       <span class="badge ${q.is_active?'badge-active':'badge-inactive'}">${q.is_active?'مفعّل':'معلّق'}</span>
@@ -311,7 +315,7 @@ async function loadQRList(wsId) {
         <button class="btn-sm ${q.is_active?'btn-deactivate':'btn-activate'}"
           onclick="toggleQR('${q.qr_id}',${!q.is_active})">${q.is_active?'إيقاف':'تفعيل'}</button>
         <button class="btn-sm btn-qr" onclick="viewQR('${q.url}','${q.qr_id}','${q.event_date}')">QR</button>
-        <button class="btn-sm btn-del-sm" onclick="deleteQR('${q.qr_id}',${q.day_number})">🗑</button>
+        <button class="btn-sm btn-del-sm" onclick="deleteQRConfirm('${q.qr_id}',${q.day_number},'${escHtml(wsName)}')">🗑</button>
       </div>
     </div>`).join('');
 }
@@ -349,12 +353,27 @@ async function toggleQR(qr_id, is_active) {
   loadQRList(selectedWS);
 }
 
-function deleteQR(qr_id, day) {
-  showConfirm('حذف رمز QR', `هل تريدين حذف رمز اليوم ${day}؟ لا يمكن التراجع.`,
+function deleteQRConfirm(qr_id, day, wsName) {
+  showConfirm(
+    'حذف اليوم وبياناته',
+    `سيتم حذف اليوم ${day} من ورشة "${wsName}" وجميع سجلات الحضور المرتبطة به بشكل نهائي.
+
+هل أنت متأكدة؟ لا يمكن التراجع عن هذا الإجراء.`,
     async () => {
       const res = await apiCall({ action:'deleteQR', qr_id });
-      if (res.ok) loadQRList(selectedWS);
-    });
+      if (res.ok) {
+        showToast('qr-toast',
+          res.attendance_cleared
+            ? '✅ تم حذف اليوم وجميع سجلات الحضور المرتبطة'
+            : '✅ تم حذف اليوم');
+        loadQRList(selectedWS);
+      } else {
+        showToast('qr-toast', '❌ ' + (res.error || 'فشل الحذف'), 'error');
+      }
+    },
+    '🗑 حذف نهائي',
+    'btn-confirm-del'
+  );
 }
 
 // ── عرض QR ───────────────────────────────────────────────

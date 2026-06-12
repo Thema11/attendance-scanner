@@ -228,16 +228,17 @@ textarea  { width:100%; padding:9px 12px; border:1.5px solid var(--border); bord
 <!-- Modal تكرار -->
 <div class="overlay" id="dup-overlay">
   <div class="modal">
-    <div class="modal-head"><span style="font-size:20px;">⚠️</span><h3>تنبيه — تكرار تسجيل</h3></div>
+    <div class="modal-head"><span style="font-size:20px;">⚠️</span><h3>يوجد حضور سابق بهذا الاسم</h3></div>
     <div class="modal-body">
-      <p>المدعو <span class="name-hl" id="dup-name"></span> مسجَّل مسبقاً:</p>
+      <p>يوجد حضور مسجَّل مسبقاً للمدعو <span class="name-hl" id="dup-name"></span></p>
       <div class="time-box" id="dup-time"></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">هل ترغب بتسجيل دخول جديد لهذا المدعو؟</p>
       <label style="font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">سبب التسجيل الإضافي (اختياري)</label>
-      <textarea id="override-reason" placeholder="مثال: تأكيد يدوي..."></textarea>
+      <textarea id="override-reason" placeholder="مثال: عاد لحضور الجلسة الثانية..."></textarea>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-cancel"   onclick="closeModal()">تجاهل</button>
-      <button class="btn btn-override" onclick="confirmOverride()">تسجيل رغم ذلك</button>
+      <button class="btn btn-cancel"   onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-override" onclick="confirmOverride()">✅ متابعة التسجيل</button>
     </div>
   </div>
 </div>
@@ -609,7 +610,7 @@ async function submitAttendance(isOverride, reason) {
       clearBanner();
     } else if (res.duplicate) {
       clearBanner();
-      showDupModal(name, res.registered_at);
+      showDupModal(name, res.registered_at, res.workshop_name, res.day_number);
     } else {
       showBanner('invalid','❌','خطأ في التسجيل', res.error || 'حاولي مجدداً');
     }
@@ -619,9 +620,12 @@ async function submitAttendance(isOverride, reason) {
 }
 
 // ── Modal تكرار ───────────────────────────────────────
-function showDupModal(name, time) {
-  document.getElementById('dup-name').textContent  = name;
-  document.getElementById('dup-time').textContent  = 'وقت التسجيل الأصلي: ' + time;
+function showDupModal(name, time, wsName, dayNum) {
+  document.getElementById('dup-name').textContent = name;
+  var info = 'وقت التسجيل الأصلي: ' + time;
+  if (wsName) info += '  |  ' + (wsName || '');
+  if (dayNum) info += '  |  اليوم ' + dayNum;
+  document.getElementById('dup-time').textContent  = info;
   document.getElementById('override-reason').value = '';
   document.getElementById('dup-overlay').classList.add('show');
 }
