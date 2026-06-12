@@ -401,3 +401,45 @@ label {
   0%,100% { opacity: 1; }
   50%      { opacity: .4; }
 }
+
+/* ============================================================
+   تحسينات بصرية غير كاسرة (إضافات فقط) — لا تعدّل أي قاعدة قائمة
+   ============================================================ */
+
+/* تفاعل ألطف للبطاقات */
+.card { transition: var(--transition); }
+.card:hover { box-shadow: var(--shadow-sm); }
+
+/* تحسين تباين عنوان البطاقة قليلاً */
+.card-title { color: var(--text-secondary); }
+
+/* أزرار: ظل خفيف وحركة hover أوضح */
+.btn-primary { box-shadow: var(--shadow-xs); }
+.btn-primary:hover { box-shadow: var(--shadow-sm); }
+.btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* الشارات: حد خفيف يحسّن الوضوح على الخلفيات الفاتحة */
+.badge { border: 1px solid rgba(0,0,0,.04); }
+
+/* صفوف الجدول: انتقال لوني سلس عند المرور */
+.att-table td { transition: background .15s ease; }
+
+/* الهيدر: تباين أوضح لزر التنقل عند التركيز */
+.app-header .nav-btn:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: 2px; }
+
+/* KPI: أرقام أوضح */
+.kpi-val { letter-spacing: -.01em; }
+
+/* تحسين الاستجابة للجوال دون كسر التخطيط */
+@media (max-width: 600px) {
+  .app-header { padding: 0 14px; gap: 10px; }
+  .app-header .header-title h1 { font-size: 14px; }
+  .card { padding: 14px; }
+  .kpi-val { font-size: 24px; }
+  .modal { max-width: 92vw; }
+}
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
