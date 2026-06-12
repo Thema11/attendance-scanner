@@ -3,7 +3,7 @@
 //  الملف: Code.gs  |  Backend الرئيسي
 // ============================================================
 
-const SHEET_ID       = 'Y1xb4nVpmQBSf_OSBEgdHLLvWqa9ddei2IvhuwRTgITJU';
+const SHEET_ID       = '1xb4nVpmQBSf_OSBEgdHLLvWqa9ddei2IvhuwRTgITJU';
 const LATE_THRESHOLD = 15;
 
 // ── أسماء الأوراق (عربي) ────────────────────────────────────
