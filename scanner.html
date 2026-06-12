@@ -315,21 +315,63 @@ async function startCamera() {
     return;
   }
 
-  // 2. تحميل jsQR
-  if (!window.jsQR) {
-    msgEl.textContent = 'جارٍ تحميل مكتبة المسح...';
-    try {
-      await new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
-        s.onload  = resolve;
-        s.onerror = function() { reject(new Error('فشل تحميل jsQR')); };
-        document.head.appendChild(s);
-      });
-    } catch(libErr) {
+  // 2. تحميل مكتبة QR بثلاث طرق (محلي → BarcodeDetector → CDN)
+  if (!window.jsQR && !window._barcodeDetectorReady) {
+    msgEl.textContent = 'جارٍ تهيئة ماسح QR...';
+
+    var libLoaded = false;
+
+    // الطريقة أ: BarcodeDetector المدمج في المتصفح (Chrome/Edge/Safari 17+)
+    if ('BarcodeDetector' in window) {
+      try {
+        var formats = await BarcodeDetector.getSupportedFormats();
+        if (formats.includes('qr_code')) {
+          window._barcodeDetectorReady = true;
+          libLoaded = true;
+        }
+      } catch(e) {}
+    }
+
+    // الطريقة ب: jsQR محلي (المرفق مع المشروع — لا يحتاج إنترنت)
+    if (!libLoaded) {
+      try {
+        await new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          s.src = 'jsqr.js'; // الملف المحلي
+          s.onload  = function() { libLoaded = true; resolve(); };
+          s.onerror = reject;
+          setTimeout(function() { reject(new Error('timeout')); }, 5000);
+          document.head.appendChild(s);
+        });
+      } catch(e) { libLoaded = false; }
+    }
+
+    // الطريقة ج: CDN بديل (raw.githubusercontent — أكثر استقراراً)
+    if (!libLoaded && !window.jsQR) {
+      msgEl.textContent = 'جارٍ تحميل المكتبة...';
+      var cdnSources = [
+        'https://raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js',
+      ];
+      for (var ci = 0; ci < cdnSources.length; ci++) {
+        try {
+          await new Promise(function(resolve, reject) {
+            var s = document.createElement('script');
+            s.src = cdnSources[ci];
+            s.onload  = function() { libLoaded = true; resolve(); };
+            s.onerror = reject;
+            setTimeout(function() { reject(new Error('timeout')); }, 8000);
+            document.head.appendChild(s);
+          });
+          if (libLoaded) break;
+        } catch(e) {}
+      }
+    }
+
+    // إذا فشلت كل الطرق
+    if (!libLoaded && !window.jsQR && !window._barcodeDetectorReady) {
       btn.disabled    = false;
       btn.textContent = '🔄 إعادة المحاولة';
-      msgEl.textContent = 'فشل تحميل مكتبة المسح — تحققي من الإنترنت';
+      msgEl.textContent = 'تعذّر تهيئة ماسح QR\nجربي الإدخال اليدوي في الأسفل';
       return;
     }
   }
@@ -394,29 +436,54 @@ async function startCamera() {
   requestAnimationFrame(tickScan);
 }
 
-// ── حلقة المسح ────────────────────────────────────────
+// ── حلقة المسح — تدعم BarcodeDetector و jsQR ──────────
 function tickScan() {
   if (!scanning) return;
-  var video  = document.getElementById('cam-video');
-  var canvas = document.getElementById('scan-canvas');
-
+  var video = document.getElementById('cam-video');
   if (video.readyState < 2) {
     animFrame = requestAnimationFrame(tickScan);
     return;
   }
 
+  // المسار أ: BarcodeDetector (أسرع وأدق — مدمج في المتصفح)
+  if (window._barcodeDetectorReady && window.BarcodeDetector) {
+    var detector = new BarcodeDetector({ formats: ['qr_code'] });
+    detector.detect(video).then(function(codes) {
+      if (!scanning) return;
+      if (codes && codes.length > 0) {
+        var now = Date.now();
+        if (now - lastScan < 2000) { animFrame = requestAnimationFrame(tickScan); return; }
+        lastScan = now;
+        scanning = false;
+        var vfOk = document.getElementById('vf-success');
+        vfOk.classList.add('show');
+        setTimeout(function() { vfOk.classList.remove('show'); }, 600);
+        document.getElementById('vf-hint').textContent = '✅ تم قراءة الرمز...';
+        setTimeout(function() { handleScan(codes[0].rawValue); }, 400);
+      } else {
+        animFrame = requestAnimationFrame(tickScan);
+      }
+    }).catch(function() {
+      // fallback لـ jsQR
+      window._barcodeDetectorReady = false;
+      animFrame = requestAnimationFrame(tickScan);
+    });
+    return;
+  }
+
+  // المسار ب: jsQR (canvas-based)
+  var canvas = document.getElementById('scan-canvas');
   canvas.width  = video.videoWidth  || 640;
   canvas.height = video.videoHeight || 480;
-
   var ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
   var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  var code    = null;
+  var code = null;
 
   try {
-    // نجرب كلا وضعي الانعكاس لأقصى توافق
-    code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
+    if (window.jsQR) {
+      code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
+    }
   } catch(e) {
     animFrame = requestAnimationFrame(tickScan);
     return;
@@ -424,18 +491,12 @@ function tickScan() {
 
   if (code && code.data) {
     var now = Date.now();
-    if (now - lastScan < 2000) {
-      animFrame = requestAnimationFrame(tickScan);
-      return;
-    }
+    if (now - lastScan < 2000) { animFrame = requestAnimationFrame(tickScan); return; }
     lastScan = now;
     scanning = false;
-
-    // وميض نجاح
     var vfOk = document.getElementById('vf-success');
     vfOk.classList.add('show');
     setTimeout(function() { vfOk.classList.remove('show'); }, 600);
-
     document.getElementById('vf-hint').textContent = '✅ تم قراءة الرمز...';
     setTimeout(function() { handleScan(code.data); }, 400);
     return;
