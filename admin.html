@@ -25,6 +25,8 @@ main { padding:16px; max-width:960px; margin:0 auto; }
 .fg { margin-bottom:11px; }
 label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:5px; }
 input, select { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:9px; font-size:14px; font-family:inherit; background:#FAFFFE; color:var(--text); transition:border-color .2s; }
+input[type="time"] { font-size:18px; font-weight:600; color:var(--teal); padding:12px; text-align:center; letter-spacing:.05em; cursor:pointer; }
+input[type="time"]::-webkit-calendar-picker-indicator { cursor:pointer; opacity:.7; }
 input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
 .btn { display:flex; align-items:center; justify-content:center; gap:6px; padding:11px 16px; border:none; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; width:100%; margin-top:8px; transition:all .2s; }
 .btn-primary   { background:var(--teal); color:#fff; }
@@ -141,9 +143,18 @@ input:focus, select:focus { outline:none; border-color:var(--teal); box-shadow:0
         <input type="text" id="qr-day-name" placeholder="مثال: ورشة حوكمة البيانات — الجلسة الأولى">
       </div>
       <div class="fg"><label>تاريخ اليوم</label><input type="date" id="qr-date" oninput="checkQRDuplicate()"></div>
-      <div class="fg"><label>بدء القبول</label><input type="datetime-local" id="qr-from"></div>
-      <div class="fg"><label>انتهاء القبول</label><input type="datetime-local" id="qr-until"></div>
-      <div class="fg"><label>اعتبار متأخر بعد</label><input type="datetime-local" id="qr-late"></div>
+      <div class="fg">
+        <label>بدء القبول <span style="font-size:11px;color:var(--muted);">(التاريخ من حقل تاريخ اليوم أعلاه)</span></label>
+        <input type="time" id="qr-from-time" placeholder="08:00" style="direction:ltr;text-align:center;">
+      </div>
+      <div class="fg">
+        <label>انتهاء القبول</label>
+        <input type="time" id="qr-until-time" placeholder="17:00" style="direction:ltr;text-align:center;">
+      </div>
+      <div class="fg">
+        <label>اعتبار متأخر بعد</label>
+        <input type="time" id="qr-late-time" placeholder="08:15" style="direction:ltr;text-align:center;">
+      </div>
       <div class="dup-warn" id="qr-dup-warn">⚠️ يوم بنفس الرقم أو التاريخ موجود — تأكدي قبل الإضافة</div>
       <button class="btn btn-primary" onclick="createQR()">✨ توليد رمز QR</button>
       <button class="btn btn-archive" onclick="document.getElementById('qr-form-card').style.display='none'" style="margin-top:6px;">✕ إلغاء</button>
@@ -355,14 +366,22 @@ function checkQRDuplicate() {
 
 async function createQR() {
   if (!selectedWS) { alert('اختاري ورشة أولاً'); return; }
-  const dayName = document.getElementById('qr-day-name').value.trim();
+  const dayName  = document.getElementById('qr-day-name').value.trim();
+  const dayDate  = document.getElementById('qr-date').value;       // yyyy-MM-dd
+  const fromTime = document.getElementById('qr-from-time').value;  // HH:mm
+  const untilTime= document.getElementById('qr-until-time').value; // HH:mm
+  const lateTime = document.getElementById('qr-late-time').value;  // HH:mm
+
+  // دمج التاريخ + الوقت → datetime-local string للحفظ في Sheets
+  const toDateTime = (date, time) => date && time ? date + 'T' + time : '';
+
   const res = await apiCall({ action:'createQR', workshop_id:selectedWS,
     day_number : document.getElementById('qr-day').value,
     day_name   : dayName,
-    event_date : document.getElementById('qr-date').value,
-    valid_from : document.getElementById('qr-from').value,
-    valid_until: document.getElementById('qr-until').value,
-    late_after : document.getElementById('qr-late').value });
+    event_date : dayDate,
+    valid_from : toDateTime(dayDate, fromTime),
+    valid_until: toDateTime(dayDate, untilTime),
+    late_after : toDateTime(dayDate, lateTime) });
   if (res.ok) {
     showToast('qr-toast','✅ تم توليد الرمز');
     loadQRList(selectedWS);
