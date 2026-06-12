@@ -11,20 +11,26 @@
   --bg:#F0FAF9; --white:#fff; --text:#1A1A1A;
   --muted:#6B7280; --border:#D1FAE5; --radius:14px;
   --success:#065F46; --success-bg:#ECFDF5;
-  --danger:#991B1B;  --danger-bg:#FEF2F2;
+  --danger:#991B1B; --danger-bg:#FEF2F2;
   --warning:#92400E; --warning-bg:#FFFBEB;
 }
 body { font-family:'Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* Header */
 header { background:var(--teal); color:#fff; padding:10px 16px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:50; box-shadow:0 2px 12px rgba(2,128,122,.3); }
-.logo { height:36px; width:auto; display:block; filter:brightness(0) invert(1); }
+.logo { height:36px; filter:brightness(0) invert(1); display:block; }
+.logo-fb { display:none; width:36px; height:36px; border-radius:9px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
 .htext { flex:1; }
 .htext h1 { font-size:15px; font-weight:700; }
 .htext p  { font-size:11px; opacity:.8; }
 .nav { display:flex; gap:6px; align-items:center; }
-.nav a, .nav button { background:rgba(255,255,255,.15); border:none; color:#fff; padding:6px 11px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; font-family:inherit; display:inline-flex; align-items:center; gap:4px; }
+.nav a, .nav button { background:rgba(255,255,255,.15); border:none; color:#fff; padding:6px 11px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; font-family:inherit; }
 .nav a:hover, .nav button:hover { background:rgba(255,255,255,.28); }
 #clock { font-size:12px; font-weight:600; background:rgba(255,255,255,.15); padding:4px 10px; border-radius:20px; }
+
 main { padding:14px; max-width:480px; margin:0 auto; }
+
+/* Banner */
 .banner { border-radius:12px; padding:12px 15px; display:none; align-items:center; gap:10px; margin-bottom:12px; }
 .banner.show    { display:flex; }
 .banner.valid   { background:var(--success-bg); color:var(--success); border:1.5px solid #6EE7B7; }
@@ -33,42 +39,68 @@ main { padding:14px; max-width:480px; margin:0 auto; }
 .b-icon  { font-size:22px; flex-shrink:0; }
 .b-title { font-size:14px; font-weight:700; }
 .b-sub   { font-size:12px; margin-top:1px; opacity:.85; }
+
+/* Card */
 .card { background:var(--white); border-radius:var(--radius); border:1px solid #E0F2F1; padding:16px; margin-bottom:12px; box-shadow:0 1px 4px rgba(2,128,122,.06); }
 .card-title { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin-bottom:12px; text-transform:uppercase; }
 
-/* ── Viewfinder ── */
-.vf-wrap { position:relative; width:100%; border-radius:12px; overflow:hidden; margin-bottom:12px; background:#000; }
-.vf-wrap video { width:100%; display:block; max-height:300px; object-fit:cover; }
-.vf-canvas { display:none; }
+/* Viewfinder */
+.vf-wrap { position:relative; width:100%; border-radius:12px; overflow:hidden; margin-bottom:12px; background:#000; min-height:240px; }
+#cam-video { width:100%; display:block; max-height:300px; object-fit:cover; }
+#scan-canvas { display:none; }
+
+/* Overlay */
+.shade { position:absolute; background:rgba(0,0,0,.48); pointer-events:none; }
+.shade.t { top:0; left:0; right:0; height:22%; }
+.shade.b { bottom:0; left:0; right:0; height:22%; }
+.shade.l { top:22%; bottom:22%; left:0; width:22%; }
+.shade.r { top:22%; bottom:22%; right:0; width:22%; }
 .vf-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
-.vf-box { width:55%; aspect-ratio:1; position:relative; }
-/* تعتيم */
-.shade { position:absolute; background:rgba(0,0,0,.5); }
-.shade.t { top:0; left:0; right:0; height:22.5%; }
-.shade.b { bottom:0; left:0; right:0; height:22.5%; }
-.shade.l { top:22.5%; bottom:22.5%; left:0; width:22.5%; }
-.shade.r { top:22.5%; bottom:22.5%; right:0; width:22.5%; }
-/* زوايا */
+.vf-box { width:56%; aspect-ratio:1; position:relative; }
 .corner { position:absolute; width:24px; height:24px; border-color:#4ADE80; border-style:solid; }
 .corner.tl { top:-2px; right:-2px; border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
 .corner.tr { top:-2px; left:-2px;  border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
 .corner.bl { bottom:-2px; right:-2px; border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
 .corner.br { bottom:-2px; left:-2px;  border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
-.scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#4ADE80,transparent); animation:scanAnim 1.8s ease-in-out infinite; border-radius:1px; }
-.vf-hint { position:absolute; bottom:8px; left:0; right:0; text-align:center; color:rgba(255,255,255,.8); font-size:12px; pointer-events:none; }
-.cam-state { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,.85); color:#fff; gap:12px; text-align:center; padding:20px; }
-.cam-state.hide { display:none; }
-.cam-icon { font-size:44px; }
-.cam-msg  { font-size:13px; line-height:1.5; opacity:.85; }
-.btn-start-cam { background:var(--teal); color:#fff; border:none; border-radius:10px; padding:12px 24px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; }
-.btn-start-cam:active { transform:scale(.97); }
+.scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#4ADE80,transparent); animation:scanAnim 1.8s ease-in-out infinite; }
 
-/* ── success ring animation ── */
-.vf-success { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(4,120,87,.85); opacity:0; transition:opacity .2s; pointer-events:none; }
+/* Camera state - FULL COVER */
+.cam-state {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,.88);
+  color:#fff; gap:14px; text-align:center; padding:24px;
+  z-index:10; /* مهم: فوق كل شيء */
+}
+.cam-state.hide { display:none !important; }
+.cam-icon { font-size:48px; line-height:1; }
+.cam-msg  { font-size:13px; line-height:1.6; opacity:.9; max-width:240px; }
+
+/* زر الكاميرا — مستقل تماماً */
+#start-btn {
+  background:#02807A;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:14px 32px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+  min-width:180px;
+  /* لا z-index مشاكل */
+}
+#start-btn:hover  { background:#016b66; }
+#start-btn:active { transform:scale(.97); }
+#start-btn:disabled { opacity:.6; cursor:not-allowed; }
+
+.vf-hint { position:absolute; bottom:8px; left:0; right:0; text-align:center; color:rgba(255,255,255,.8); font-size:12px; pointer-events:none; z-index:5; }
+.vf-success { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(4,120,87,.85); opacity:0; transition:opacity .25s; pointer-events:none; z-index:15; }
 .vf-success.show { opacity:1; }
-.vf-success span { font-size:56px; }
+.vf-success span { font-size:60px; }
 
-/* ── Form ── */
+/* Form elements */
 input[type="text"] { width:100%; padding:12px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:15px; font-family:inherit; background:#FAFFFE; color:var(--text); transition:border-color .2s; text-align:right; }
 input[type="text"]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(2,128,122,.1); }
 .btn { width:100%; padding:13px; border:none; border-radius:9px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; transition:all .2s; }
@@ -82,8 +114,8 @@ input[type="text"]:focus { outline:none; border-color:var(--teal); box-shadow:0 
 #reg-form { display:none; }
 #reg-form.show { display:block; }
 
-/* ── Duplicate Modal ── */
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; backdrop-filter:blur(3px); }
+/* Modal */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
 .overlay.show { display:flex; }
 .modal { background:var(--white); border-radius:var(--radius); width:100%; max-width:360px; overflow:hidden; animation:slideUp .28s; }
 .modal-head { background:var(--warning-bg); border-bottom:1.5px solid #FCD34D; padding:14px 18px; display:flex; align-items:center; gap:10px; }
@@ -98,7 +130,7 @@ textarea  { width:100%; padding:9px 12px; border:1.5px solid var(--border); bord
 .btn-override { background:var(--teal); color:#fff; }
 .btn-cancel   { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); }
 
-/* ── Flash ── */
+/* Flash */
 .flash { position:fixed; inset:0; background:linear-gradient(135deg,var(--teal),var(--teal2)); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; z-index:200; opacity:0; pointer-events:none; transition:opacity .3s; text-align:center; padding:30px; }
 .flash.show { opacity:1; pointer-events:all; }
 .flash-check { font-size:80px; margin-bottom:14px; }
@@ -108,64 +140,80 @@ textarea  { width:100%; padding:9px 12px; border:1.5px solid var(--border); bord
 
 @keyframes scanAnim { 0%{top:2%} 50%{top:94%} 100%{top:2%} }
 @keyframes slideUp  { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
-@keyframes fadeIn   { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:none} }
 </style>
 </head>
 <body>
+
 <header>
-  <img src="logo.svg" alt="شعار" class="logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
-  <div id="logo-fallback" style="display:none;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.2);align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">⚖</div>
+  <img src="logo.svg" alt="شعار" class="logo"
+       onerror="this.style.display='none';document.querySelector('.logo-fb').style.display='flex'">
+  <div class="logo-fb">⚖</div>
   <div class="htext">
     <h1 id="sys-name">تسجيل الحضور</h1>
     <p id="org-name">النيابة العامة</p>
   </div>
   <div class="nav">
     <div id="clock">--:--</div>
-    <a href="dashboard.html" id="nav-dash">📊</a>
+    <a href="dashboard.html">📊</a>
     <a href="admin.html" id="nav-admin" style="display:none;">⚙️</a>
-    <button onclick="Auth.logout()">🚪</button>
+    <button onclick="doLogout()">🚪</button>
   </div>
 </header>
 
 <main>
   <div id="banner" class="banner">
     <div class="b-icon" id="b-icon"></div>
-    <div><div class="b-title" id="b-title"></div><div class="b-sub" id="b-sub"></div></div>
+    <div>
+      <div class="b-title" id="b-title"></div>
+      <div class="b-sub"   id="b-sub"></div>
+    </div>
   </div>
 
-  <!-- بطاقة الكاميرا -->
   <div class="card" id="scanner-card">
     <div class="card-title">📷 ماسح رمز QR</div>
-    <div class="vf-wrap" id="vf-wrap">
+    <div class="vf-wrap">
       <video id="cam-video" autoplay playsinline muted></video>
-      <canvas id="scan-canvas" class="vf-canvas"></canvas>
-      <!-- تعتيم -->
-      <div class="shade t"></div><div class="shade b"></div>
-      <div class="shade l"></div><div class="shade r"></div>
-      <!-- إطار -->
+      <canvas id="scan-canvas"></canvas>
+
+      <div class="shade t"></div>
+      <div class="shade b"></div>
+      <div class="shade l"></div>
+      <div class="shade r"></div>
+
       <div class="vf-overlay">
         <div class="vf-box">
-          <div class="corner tl"></div><div class="corner tr"></div>
-          <div class="corner bl"></div><div class="corner br"></div>
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
           <div class="scan-line"></div>
         </div>
       </div>
+
       <div class="vf-hint" id="vf-hint">وجّه الكاميرا نحو رمز QR</div>
-      <!-- flash نجاح داخل الكاميرا -->
       <div class="vf-success" id="vf-success"><span>✅</span></div>
+
       <!-- حالة الكاميرا -->
       <div class="cam-state" id="cam-state">
         <div class="cam-icon">📷</div>
-        <div class="cam-msg" id="state-msg">اضغط لتشغيل الكاميرا</div>
-        <button class="btn-start-cam" id="start-btn" onclick="startCamera()">تشغيل الكاميرا</button>
+        <div class="cam-msg" id="state-msg">اضغط الزر لتشغيل الكاميرا</div>
+        <!--
+          الزر هنا مستقل تماماً — onclick مباشر بدون أي wrapper
+          لا يعتمد على Auth أو Config في التحميل
+        -->
+        <button id="start-btn" onclick="startCamera()">
+          تشغيل الكاميرا
+        </button>
       </div>
     </div>
+
     <div class="divider-or">أو أدخل يدوياً</div>
-    <input type="text" id="manual-token" placeholder="الصق رابط QR أو token">
-    <button class="btn btn-primary" onclick="manualValidate()" style="margin-top:9px;">🔍 تحقق</button>
+    <input type="text" id="manual-token" placeholder="الصق رابط QR أو token هنا">
+    <button class="btn btn-primary" onclick="manualValidate()" style="margin-top:9px;">
+      🔍 تحقق يدوياً
+    </button>
   </div>
 
-  <!-- نموذج التسجيل -->
   <div id="reg-form">
     <div class="session-pill" id="session-pill"></div>
     <div class="card">
@@ -185,7 +233,7 @@ textarea  { width:100%; padding:9px 12px; border:1.5px solid var(--border); bord
       <p>المدعو <span class="name-hl" id="dup-name"></span> مسجَّل مسبقاً:</p>
       <div class="time-box" id="dup-time"></div>
       <label style="font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">سبب التسجيل الإضافي (اختياري)</label>
-      <textarea id="override-reason" placeholder="مثال: تأكيد يدوي من المنظم..."></textarea>
+      <textarea id="override-reason" placeholder="مثال: تأكيد يدوي..."></textarea>
     </div>
     <div class="modal-foot">
       <button class="btn btn-cancel"   onclick="closeModal()">تجاهل</button>
@@ -202,165 +250,181 @@ textarea  { width:100%; padding:9px 12px; border:1.5px solid var(--border); bord
   <div class="late-tag" id="flash-late" style="display:none;">⏰ متأخر</div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     تحميل الإعدادات أولاً — ثم المنطق
+     ══════════════════════════════════════════════════════ -->
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script>
-// ── حماية الصفحة ──────────────────────────────────────────
-if (!Auth.check()) { /* redirect حدث في Auth.check */ }
+// ── إعداد الصفحة ───────────────────────────────────────
+(function init() {
+  // تطبيق الإعدادات
+  try {
+    if (typeof CONFIG !== 'undefined') {
+      document.getElementById('sys-name').textContent = CONFIG.SYSTEM_NAME || 'تسجيل الحضور';
+      document.getElementById('org-name').textContent = CONFIG.ORG_NAME    || 'النيابة العامة';
+    }
+  } catch(e) {}
 
-// إظهار زر الإدارة للمسؤول فقط
-if (Auth.getRole() === 'admin') {
-  document.getElementById('nav-admin').style.display = '';
-}
-document.getElementById('sys-name').textContent = CONFIG.SYSTEM_NAME;
-document.getElementById('org-name').textContent = CONFIG.ORG_NAME;
+  // حماية: تحقق من الجلسة — إذا لم يكن مسجلاً وجّهه للدخول
+  try {
+    if (typeof Auth !== 'undefined') {
+      if (!sessionStorage.getItem('auth')) {
+        window.location.href = 'index.html';
+        return;
+      }
+      if (Auth.getRole() === 'admin') {
+        document.getElementById('nav-admin').style.display = '';
+      }
+    }
+  } catch(e) {}
 
-// ── متغيرات ───────────────────────────────────────────────
-let sessionData = null;
-let camStream   = null;
-let scanning    = false;
-let animFrame   = null;
-let lastScan    = 0; // منع التكرار السريع
+  // ساعة
+  setInterval(() => {
+    const el = document.getElementById('clock');
+    if (el) el.textContent = new Date().toLocaleTimeString('ar-SA',
+      {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }, 1000);
+})();
 
-// ── ساعة ─────────────────────────────────────────────────
-setInterval(() => {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}, 1000);
+// ── متغيرات عامة ───────────────────────────────────────
+var camStream  = null;
+var scanning   = false;
+var animFrame  = null;
+var lastScan   = 0;
+var sessionData= null;
 
-// ══════════════════════════════════════════════════════════
-//  الإصلاح الجذري لمشكلة QR Scanner
-//  السبب الأصلي: inversionAttempts:'dontInvert' يفشل مع
-//  بعض أنواع QR. الحل: نجرب كل الاحتمالات.
-// ══════════════════════════════════════════════════════════
-// تحميل jsQR ديناميكياً للتأكد من تحميله
-function loadJsQR() {
-  return new Promise((resolve, reject) => {
-    if (window.jsQR) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
-    s.onload  = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
+// ══════════════════════════════════════════════════════
+//  startCamera — مستقلة تماماً، تعمل حتى بدون auth.js
+// ══════════════════════════════════════════════════════
 async function startCamera() {
-  const btn     = document.getElementById('start-btn');
-  const stateEl = document.getElementById('cam-state');
-  const msgEl   = document.getElementById('state-msg');
+  var btn     = document.getElementById('start-btn');
+  var stateEl = document.getElementById('cam-state');
+  var msgEl   = document.getElementById('state-msg');
 
-  btn.disabled        = true;
-  btn.textContent     = 'جارٍ التشغيل...';
-  msgEl.textContent   = 'جارٍ تشغيل الكاميرا...';
+  // تعطيل الزر فوراً لمنع النقر المتكرر
+  btn.disabled    = true;
+  btn.textContent = '⏳ جارٍ التشغيل...';
+  msgEl.textContent = 'جارٍ تشغيل الكاميرا...';
 
   // 1. تحقق من دعم المتصفح
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+  if (!window.navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     btn.disabled    = false;
-    btn.textContent = 'إعادة المحاولة';
-    msgEl.textContent = 'متصفحك لا يدعم الكاميرا — جربي Chrome أو Safari';
+    btn.textContent = '🔄 إعادة المحاولة';
+    msgEl.textContent = 'متصفحك لا يدعم الكاميرا\nجربي Chrome أو Safari أحدث إصدار';
     return;
   }
 
   // 2. تحميل jsQR
-  try {
-    await loadJsQR();
-  } catch(e) {
-    btn.disabled    = false;
-    btn.textContent = 'إعادة المحاولة';
-    msgEl.textContent = 'فشل تحميل مكتبة المسح — تحققي من الإنترنت';
-    return;
+  if (!window.jsQR) {
+    msgEl.textContent = 'جارٍ تحميل مكتبة المسح...';
+    try {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+        s.onload  = resolve;
+        s.onerror = function() { reject(new Error('فشل تحميل jsQR')); };
+        document.head.appendChild(s);
+      });
+    } catch(libErr) {
+      btn.disabled    = false;
+      btn.textContent = '🔄 إعادة المحاولة';
+      msgEl.textContent = 'فشل تحميل مكتبة المسح — تحققي من الإنترنت';
+      return;
+    }
   }
 
-  // 3. طلب الكاميرا بثلاث محاولات متدرجة
-  const attempts = [
-    { facingMode: 'environment' },          // خلفية
-    { facingMode: 'user' },                 // أمامية
-    true,                                   // أي كاميرا
+  // 3. طلب الكاميرا بمحاولات متدرجة
+  var stream = null;
+  var camError = null;
+  var constraints = [
+    { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } },
+    { video: { facingMode: 'environment' } },
+    { video: { facingMode: 'user' } },
+    { video: true },
   ];
 
-  let stream = null;
-  let lastErr = null;
-
-  for (const constraint of attempts) {
+  for (var i = 0; i < constraints.length; i++) {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: constraint });
+      stream = await navigator.mediaDevices.getUserMedia(constraints[i]);
       break;
-    } catch(e) {
-      lastErr = e;
-      // إذا رُفض الإذن — لا فائدة من المحاولات الأخرى
-      if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') break;
+    } catch(err) {
+      camError = err;
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') break;
     }
   }
 
   if (!stream) {
     btn.disabled    = false;
-    btn.textContent = 'إعادة المحاولة';
-    const msgs = {
-      NotAllowedError       : 'رُفض إذن الكاميرا
-افتحي إعدادات المتصفح وأعطي إذن الكاميرا لهذا الموقع',
-      PermissionDeniedError : 'رُفض إذن الكاميرا
-افتحي إعدادات المتصفح وأعطي إذن الكاميرا لهذا الموقع',
-      NotFoundError         : 'لم يُعثر على كاميرا — تأكدي من توصيل الكاميرا',
-      NotReadableError      : 'الكاميرا مستخدمة من تطبيق آخر — أغلقيه وأعيدي',
-      OverconstrainedError  : 'الكاميرا لا تتوافق مع الجهاز',
+    btn.textContent = '🔄 إعادة المحاولة';
+    var errName = (camError && camError.name) ? camError.name : '';
+    var errMsgs = {
+      'NotAllowedError'      : '🚫 رُفض إذن الكاميرا\nافتحي إعدادات المتصفح وأعطي إذن الكاميرا لهذا الموقع',
+      'PermissionDeniedError': '🚫 رُفض إذن الكاميرا\nافتحي إعدادات المتصفح وأعطي إذن الكاميرا لهذا الموقع',
+      'NotFoundError'        : '📷 لم يُعثر على كاميرا\nتأكدي من توصيل الكاميرا',
+      'NotReadableError'     : '⚠️ الكاميرا مستخدمة\nأغلقي التطبيقات الأخرى وأعيدي المحاولة',
+      'OverconstrainedError' : '⚠️ الكاميرا لا تتوافق\nجربي متصفحاً آخر',
     };
-    const name = lastErr?.name || '';
-    msgEl.textContent = msgs[name] || 'تعذّر تشغيل الكاميرا — جربي متصفحاً آخر';
+    msgEl.textContent = errMsgs[errName] || 'تعذّر تشغيل الكاميرا\nجربي Chrome أو Safari';
     return;
   }
 
   // 4. تشغيل الفيديو
   camStream = stream;
-  const video = document.getElementById('cam-video');
+  var video = document.getElementById('cam-video');
   video.srcObject = stream;
 
-  try {
-    await video.play();
-  } catch(playErr) {
-    // بعض المتصفحات تحتاج تدخل المستخدم — نحاول مجدداً
-    await new Promise(r => setTimeout(r, 500));
-    try { await video.play(); } catch(e) { /* نكمل */ }
+  // play مع fallback
+  try { await video.play(); } catch(e) {
+    // بعض المتصفحات لا تحتاج await
+    video.play().catch(function(){});
   }
 
-  // 5. انتظار بيانات الفيديو
-  await new Promise((resolve) => {
+  // 5. انتظار جاهزية الفيديو
+  await new Promise(function(resolve) {
     if (video.readyState >= 2) { resolve(); return; }
     video.addEventListener('loadeddata', resolve, { once: true });
-    setTimeout(resolve, 3000); // max wait 3s
+    setTimeout(resolve, 4000);
   });
 
+  // 6. إخفاء شاشة الانتظار وبدء المسح
   stateEl.classList.add('hide');
   document.getElementById('vf-hint').textContent = 'وجّه الكاميرا نحو رمز QR';
   scanning = true;
-  tickScan();
+  requestAnimationFrame(tickScan);
 }
 
-// ── حلقة المسح المُحسَّنة ─────────────────────────────────
+// ── حلقة المسح ────────────────────────────────────────
 function tickScan() {
   if (!scanning) return;
-  const video  = document.getElementById('cam-video');
-  const canvas = document.getElementById('scan-canvas');
+  var video  = document.getElementById('cam-video');
+  var canvas = document.getElementById('scan-canvas');
 
-  if (video.readyState < video.HAVE_ENOUGH_DATA) {
+  if (video.readyState < 2) {
     animFrame = requestAnimationFrame(tickScan);
     return;
   }
 
-  canvas.width  = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(video, 0, 0);
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
 
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // ══ الإصلاح: نجرب كلا وضعي الانعكاس ══
-  let code = jsQR(imageData.data, imageData.width, imageData.height,
-                  { inversionAttempts: 'attemptBoth' });
+  var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  var code    = null;
+
+  try {
+    // نجرب كلا وضعي الانعكاس لأقصى توافق
+    code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
+  } catch(e) {
+    animFrame = requestAnimationFrame(tickScan);
+    return;
+  }
 
   if (code && code.data) {
-    const now = Date.now();
-    if (now - lastScan < 2000) { // منع القراءة المتكررة خلال ثانيتين
+    var now = Date.now();
+    if (now - lastScan < 2000) {
       animFrame = requestAnimationFrame(tickScan);
       return;
     }
@@ -368,32 +432,31 @@ function tickScan() {
     scanning = false;
 
     // وميض نجاح
-    const vfSuccess = document.getElementById('vf-success');
-    vfSuccess.classList.add('show');
-    setTimeout(() => vfSuccess.classList.remove('show'), 600);
+    var vfOk = document.getElementById('vf-success');
+    vfOk.classList.add('show');
+    setTimeout(function() { vfOk.classList.remove('show'); }, 600);
 
-    document.getElementById('vf-hint').textContent = '✅ جارٍ التحقق...';
-    setTimeout(() => handleScan(code.data), 400);
+    document.getElementById('vf-hint').textContent = '✅ تم قراءة الرمز...';
+    setTimeout(function() { handleScan(code.data); }, 400);
     return;
   }
 
   animFrame = requestAnimationFrame(tickScan);
 }
 
-// ── معالجة نتيجة المسح ───────────────────────────────────
+// ── معالجة نتيجة المسح ───────────────────────────────
 function handleScan(text) {
   stopCamera();
-  const token = extractToken(text);
+  var token = extractToken(text);
   validateToken(token);
 }
 
 function extractToken(text) {
   if (!text) return '';
   try {
-    const url = new URL(text);
+    var url = new URL(text);
     return url.searchParams.get('token') || text;
-  } catch(_) {
-    // ليس رابطاً — نعامله كـ token مباشر
+  } catch(e) {
     return text.trim();
   }
 }
@@ -401,60 +464,73 @@ function extractToken(text) {
 function stopCamera() {
   scanning = false;
   if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  if (camStream) {
+    camStream.getTracks().forEach(function(t) { t.stop(); });
+    camStream = null;
+  }
 }
 
-// ── إدخال يدوي ───────────────────────────────────────────
+// ── إدخال يدوي ───────────────────────────────────────
 function manualValidate() {
-  const raw = document.getElementById('manual-token').value.trim();
+  var raw = document.getElementById('manual-token').value.trim();
   if (!raw) { document.getElementById('manual-token').focus(); return; }
   stopCamera();
   validateToken(extractToken(raw));
 }
 
-// ── التحقق من الرمز ──────────────────────────────────────
+// ── التحقق من الرمز ──────────────────────────────────
 async function validateToken(token) {
-  if (!token) { showBanner('invalid','❌','رمز فارغ','الرجاء مسح رمز QR صالح'); return; }
-  showBanner('warning','⏳','جارٍ التحقق من الرمز...','');
+  if (!token) {
+    showBanner('invalid','❌','رمز فارغ','الرجاء مسح رمز QR أو إدخاله يدوياً');
+    return;
+  }
+  showBanner('warning','⏳','جارٍ التحقق...','');
   try {
-    const res = await apiCall({ action:'validateQR', token });
+    var res = await apiFetch({ action:'validateQR', token: token });
     if (res.ok) {
       sessionData = res;
-      showBanner('valid','✅','رمز صالح', `${res.workshop_name} — اليوم ${res.day_number}`);
+      showBanner('valid','✅','رمز صالح', (res.workshop_name||'') + ' — اليوم ' + (res.day_number||''));
       document.getElementById('session-pill').innerHTML =
-        `<strong>${res.workshop_name}</strong>
-         <span>📅 اليوم ${res.day_number} &nbsp;|&nbsp; ${res.event_date}</span>`;
+        '<strong>' + (res.workshop_name||'') + '</strong>' +
+        '<span>📅 اليوم ' + (res.day_number||'') + ' | ' + (res.event_date||'') + '</span>';
       document.getElementById('scanner-card').style.display = 'none';
       document.getElementById('reg-form').classList.add('show');
-      setTimeout(() => document.getElementById('attendee-name').focus(), 300);
+      setTimeout(function() { document.getElementById('attendee-name').focus(); }, 300);
     } else {
       showBanner('invalid','❌','رمز غير صالح', res.reason || 'الرمز غير معروف أو منتهي الصلاحية');
-      setTimeout(() => { clearBanner(); restartCameraAfterFail(); }, 3000);
+      setTimeout(function() { clearBanner(); restartCamera(); }, 3500);
     }
   } catch(e) {
     showBanner('invalid','❌','خطأ في الاتصال', 'تحققي من الإنترنت وحاولي مجدداً');
-    setTimeout(() => { clearBanner(); restartCameraAfterFail(); }, 3000);
+    setTimeout(function() { clearBanner(); restartCamera(); }, 3500);
   }
 }
 
-function restartCameraAfterFail() {
-  document.getElementById('cam-state').classList.remove('hide');
-  const btn = document.getElementById('start-btn');
-  btn.disabled = false;
+function restartCamera() {
+  var s = document.getElementById('cam-state');
+  s.classList.remove('hide');
+  var btn = document.getElementById('start-btn');
+  btn.disabled    = false;
   btn.textContent = 'تشغيل الكاميرا';
-  document.getElementById('state-msg').textContent = 'اضغط لتشغيل الكاميرا';
+  document.getElementById('state-msg').textContent = 'اضغط الزر لتشغيل الكاميرا';
   document.getElementById('vf-hint').textContent   = 'وجّه الكاميرا نحو رمز QR';
   startCamera();
 }
 
-// ── تسجيل الحضور ─────────────────────────────────────────
-async function submitAttendance(isOverride=false, reason='') {
-  const name = document.getElementById('attendee-name').value.trim();
+// ── تسجيل الحضور ─────────────────────────────────────
+async function submitAttendance(isOverride, reason) {
+  isOverride = isOverride || false;
+  reason     = reason     || '';
+  var name = document.getElementById('attendee-name').value.trim();
   if (!name) { document.getElementById('attendee-name').focus(); return; }
   if (!sessionData) return;
+
   showBanner('warning','⏳','جارٍ التسجيل...','');
   try {
-    const res = await apiCall({
+    var role = 'المنظم';
+    try { if (typeof Auth !== 'undefined') role = Auth.getRole() === 'admin' ? 'المسؤول' : 'المنظم'; } catch(e){}
+
+    var res = await apiFetch({
       action         : 'registerAttendee',
       qr_id          : sessionData.qr_id,
       workshop_id    : sessionData.workshop_id,
@@ -463,8 +539,9 @@ async function submitAttendance(isOverride=false, reason='') {
       attendee_name  : name,
       override       : isOverride,
       override_reason: reason,
-      approved_by    : Auth.getRole() === 'admin' ? 'المسؤول' : 'المنظم',
+      approved_by    : role,
     });
+
     if (res.ok) {
       showFlash(name, res.arrival_time, res.is_late, res.status === 'تجاوز');
       document.getElementById('attendee-name').value = '';
@@ -476,35 +553,36 @@ async function submitAttendance(isOverride=false, reason='') {
       showBanner('invalid','❌','خطأ في التسجيل', res.error || 'حاولي مجدداً');
     }
   } catch(e) {
-    showBanner('invalid','❌','خطأ في الاتصال', e.message);
+    showBanner('invalid','❌','خطأ في الاتصال', e.message || 'تحققي من الإنترنت');
   }
 }
 
-// ── Modal تكرار ───────────────────────────────────────────
+// ── Modal تكرار ───────────────────────────────────────
 function showDupModal(name, time) {
   document.getElementById('dup-name').textContent  = name;
-  document.getElementById('dup-time').textContent  = `وقت التسجيل الأصلي: ${time}`;
+  document.getElementById('dup-time').textContent  = 'وقت التسجيل الأصلي: ' + time;
   document.getElementById('override-reason').value = '';
   document.getElementById('dup-overlay').classList.add('show');
 }
-function closeModal() { document.getElementById('dup-overlay').classList.remove('show'); }
+function closeModal()    { document.getElementById('dup-overlay').classList.remove('show'); }
 function confirmOverride() {
+  var reason = document.getElementById('override-reason').value.trim();
   closeModal();
-  submitAttendance(true, document.getElementById('override-reason').value.trim());
+  submitAttendance(true, reason);
 }
 
-// ── Flash نجاح ────────────────────────────────────────────
+// ── Flash نجاح ────────────────────────────────────────
 function showFlash(name, time, isLate, isOverride) {
   document.getElementById('flash-name').textContent = name;
   document.getElementById('flash-time').textContent =
-    `${isOverride ? 'تسجيل إضافي' : 'حضور مؤكد'} — الساعة ${time}`;
+    (isOverride ? 'تسجيل إضافي' : 'حضور مؤكد') + ' — الساعة ' + time;
   document.getElementById('flash-late').style.display = isLate ? 'block' : 'none';
-  const f = document.getElementById('flash');
+  var f = document.getElementById('flash');
   f.classList.add('show');
-  setTimeout(() => f.classList.remove('show'), 2500);
+  setTimeout(function() { f.classList.remove('show'); }, 2500);
 }
 
-// ── إعادة ضبط ─────────────────────────────────────────────
+// ── إعادة ضبط ─────────────────────────────────────────
 function resetScanner() {
   sessionData = null;
   stopCamera();
@@ -512,27 +590,44 @@ function resetScanner() {
   document.getElementById('scanner-card').style.display = '';
   document.getElementById('manual-token').value = '';
   clearBanner();
-  document.getElementById('cam-state').classList.remove('hide');
-  const btn = document.getElementById('start-btn');
-  btn.disabled = false;
+  var s   = document.getElementById('cam-state');
+  var btn = document.getElementById('start-btn');
+  s.classList.remove('hide');
+  btn.disabled    = false;
   btn.textContent = 'تشغيل الكاميرا';
-  document.getElementById('state-msg').textContent = 'اضغط لتشغيل الكاميرا';
+  document.getElementById('state-msg').textContent = 'اضغط الزر لتشغيل الكاميرا';
   startCamera();
 }
 
-// ── مساعدات ──────────────────────────────────────────────
+// ── API ───────────────────────────────────────────────
+async function apiFetch(payload) {
+  var baseUrl = '';
+  try { baseUrl = CONFIG.APPS_SCRIPT_URL; } catch(e) {}
+  if (!baseUrl) throw new Error('رابط الـ API غير مضبوط في config.js');
+  var url = baseUrl + '?data=' + encodeURIComponent(JSON.stringify(payload));
+  var r   = await fetch(url, { method: 'GET', redirect: 'follow' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  var text = await r.text();
+  return JSON.parse(text);
+}
+
+// ── مساعدات ──────────────────────────────────────────
 function showBanner(type, icon, title, sub) {
-  const b = document.getElementById('banner');
-  b.className = 'banner show ' +
-    (type==='valid' ? 'valid' : type==='warning' ? 'warning' : 'invalid');
+  var b = document.getElementById('banner');
+  b.className = 'banner show ' + (type==='valid'?'valid':type==='warning'?'warning':'invalid');
   document.getElementById('b-icon').textContent  = icon;
   document.getElementById('b-title').textContent = title;
   document.getElementById('b-sub').textContent   = sub;
 }
 function clearBanner() { document.getElementById('banner').classList.remove('show'); }
+function doLogout() {
+  try { if (typeof Auth !== 'undefined') Auth.logout(); } catch(e) {}
+  sessionStorage.clear();
+  window.location.href = 'index.html';
+}
 
 // Enter shortcut
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.getElementById('reg-form').classList.contains('show'))
     submitAttendance();
 });

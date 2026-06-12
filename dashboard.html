@@ -55,7 +55,7 @@ tr:hover td { background:#F9FAFB; }
 </head>
 <body>
 <header>
-  <img src="logo.svg" alt="شعار" style="height:36px;filter:brightness(0) invert(1);">
+  <img src="logo.svg" alt="شعار" style="height:36px;filter:brightness(0) invert(1);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.2);align-items:center;justify-content:center;font-size:20px;">⚖</div>
   <div class="ht"><h1>لوحة التحكم</h1><p id="org-name">النيابة العامة</p></div>
   <div class="spacer"></div>
   <div class="live"><div class="dot"></div>مباشر</div>
@@ -119,13 +119,24 @@ let distChart = null, autoTimer = null, tableData = [];
 window.addEventListener('load', loadWorkshops);
 
 async function loadWorkshops() {
-  const res = await api({ action:'getWorkshops' });
   const sel = document.getElementById('ws-sel');
-  sel.innerHTML = '<option value="">— اختر الورشة —</option>';
-  (res.workshops||[]).forEach(w => {
-    const o = document.createElement('option');
-    o.value = w.workshop_id; o.textContent = w.name; sel.appendChild(o);
-  });
+  try {
+    const res = await api({ action:'getWorkshops' });
+    sel.innerHTML = '<option value="">— اختر الورشة —</option>';
+    const workshops = res.workshops || [];
+    if (!workshops.length) {
+      sel.innerHTML += '<option disabled>لا توجد ورش — أضيفي من صفحة الإدارة</option>';
+      return;
+    }
+    workshops.forEach(w => {
+      const o = document.createElement('option');
+      o.value = w.workshop_id;
+      o.textContent = w.name;
+      sel.appendChild(o);
+    });
+  } catch(e) {
+    sel.innerHTML = '<option disabled>خطأ في الاتصال — ' + (e.message||'تحققي من config.js') + '</option>';
+  }
 }
 
 async function loadQRList() {
@@ -144,21 +155,41 @@ async function loadDashboard() {
   const wsId = document.getElementById('ws-sel').value;
   const qrId = document.getElementById('qr-sel').value;
   if (!wsId || !qrId) return;
-  const res = await api({ action:'getDashboard', workshop_id:wsId, qr_id:qrId });
-  if (!res.ok) return;
-  const k = res.kpis;
-  setText('k-total', k.total); setText('k-ontime', k.onTime);
-  setText('k-late', k.lateCount); setText('k-avg', k.avgTime); setText('k-last', k.lastPerson);
-  tableData = res.table || [];
-  renderTable(tableData);
-  renderChart(res.distribution);
-  if (res.earliest) setText('i-first', `${res.earliest.name} (${res.earliest.time})`);
-  const peak = res.distribution?.length ? res.distribution.reduce((a,b)=>a.count>b.count?a:b) : null;
-  setText('i-peak', peak ? `${peak.time} (${peak.count})` : '—');
-  const pct = k.total > 0 ? Math.round((k.onTime/k.total)*100) : 0;
-  setText('i-pct', k.total > 0 ? pct+'%' : '—');
-  clearTimeout(autoTimer);
-  autoTimer = setTimeout(loadDashboard, 30000);
+
+  // مؤشر تحميل
+  ['k-total','k-ontime','k-late','k-avg','k-last'].forEach(id => setText(id,'...'));
+
+  try {
+    const res = await api({ action:'getDashboard', workshop_id:wsId, qr_id:qrId });
+    if (!res.ok) {
+      document.getElementById('tbl-wrap').innerHTML =
+        '<div class="empty">⚠️ ' + (res.error || 'خطأ في جلب البيانات') + '</div>';
+      ['k-total','k-ontime','k-late','k-avg','k-last'].forEach(id => setText(id,'—'));
+      return;
+    }
+    const k = res.kpis || {};
+    setText('k-total',  k.total     ?? 0);
+    setText('k-ontime', k.onTime    ?? 0);
+    setText('k-late',   k.lateCount ?? 0);
+    setText('k-avg',    k.avgTime   || '—');
+    setText('k-last',   k.lastPerson|| '—');
+    tableData = res.table || [];
+    renderTable(tableData);
+    renderChart(res.distribution || []);
+    if (res.earliest) setText('i-first', res.earliest.name + ' (' + res.earliest.time + ')');
+    else setText('i-first', '—');
+    const dist = res.distribution || [];
+    const peak = dist.length ? dist.reduce((a,b)=>a.count>b.count?a:b) : null;
+    setText('i-peak', peak ? peak.time + ' (' + peak.count + ')' : '—');
+    const pct = (k.total||0) > 0 ? Math.round(((k.onTime||0)/(k.total))*100) : 0;
+    setText('i-pct', (k.total||0) > 0 ? pct+'%' : '—');
+    clearTimeout(autoTimer);
+    autoTimer = setTimeout(loadDashboard, 30000);
+  } catch(e) {
+    document.getElementById('tbl-wrap').innerHTML =
+      '<div class="empty">❌ خطأ في الاتصال: ' + (e.message||'تحققي من الإنترنت') + '</div>';
+    ['k-total','k-ontime','k-late','k-avg','k-last'].forEach(id => setText(id,'—'));
+  }
 }
 
 function renderTable(rows) {
@@ -196,11 +227,22 @@ function exportCSV() {
 }
 
 function setText(id,v) { document.getElementById(id).textContent = v ?? '—'; }
-function logout() { Auth.logout(); }
-async function apiFn(payload) {
-  const url = CONFIG.APPS_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
+function logout() {
+  try { if (typeof Auth !== 'undefined') Auth.logout(); } catch(e){}
+  sessionStorage.clear(); window.location.href = 'index.html';
+}
+
+// ── API — مُعرَّفة باسم واحد واضح ─────────────────────
+async function api(payload) {
+  var baseUrl = '';
+  try { baseUrl = CONFIG.APPS_SCRIPT_URL; } catch(e){}
+  if (!baseUrl) throw new Error('رابط الـ API غير مضبوط');
+  const url = baseUrl + '?data=' + encodeURIComponent(JSON.stringify(payload));
   const r   = await fetch(url, { method:'GET', redirect:'follow' });
-  return r.json();
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const text = await r.text();
+  try { return JSON.parse(text); }
+  catch(e) { throw new Error('استجابة غير صالحة من الخادم'); }
 }
 </script>
 </body>
